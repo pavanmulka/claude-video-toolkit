@@ -1,0 +1,41 @@
+# __NAME__ — created __DATE__ from template "hook-demo" (result first, then how)
+# Beats: 0-2 s the RESULT on screen + outcome hook (never open with the app name) · 2-18 s 3-5 taps: typing at 2-3x,
+# proof moments at 1x with taps + marks · 18-22 s hold on the result + soft CTA. ~20-25 s.
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  layout: iphone
+  text_style: step_pill
+  drift: 0.03
+timeline:
+  - section: hook
+    text: {content: "Your boarding pass\nin **3 taps**", style: kinetic, pos: ["50%", "16%"], behind: true}
+    text_anim: {by: word, effect: stamp, stagger: 0.1, in: 0.25}
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 2.0, layout: {type: iphone, top: "30%"},
+         enter: {rise: 200, dur: 0.8, fade: 0.0, ease: spring_soft, tilt: [20, -14], scale: 0.9}}
+  - section: step1
+    text: "**1** Open the trip"
+    clips:
+      - {src: __CLIP1__, in: 2.0, dur: 2.5, taps: []}
+  - section: step2
+    text: "**2** Tap Flights"
+    clips:
+      - {src: __CLIP2__, in: 0.0, dur: 2.5, transition: {type: zoom, dur: 0.3}}
+  - section: proof
+    text: "**3** There it is"
+    clips:
+      - {src: __CLIP3__, in: 0.0, dur: 1.0, hold: 2.5,
+         marks: [{type: circle, rect: [80, 1900, 300, 90], at: 0.4}],
+         lifts: [{rect: [40, 1800, 1240, 460], at: 1.2, scale: 1.18, up: 60, dim: 0.3, border: accent}]}
+  - section: end
+    text: none
+    clips:
+      - {image: __BRAND__/endcard.png, dur: 1.5, layout: fullbleed, zoom: [1.03, 1.0]}
+audio:
+  music: {generate: {bpm: 112, key: D, drop: 2.0}, volume: -6}

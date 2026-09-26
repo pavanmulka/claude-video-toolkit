@@ -1,0 +1,29 @@
+# __NAME__ — created __DATE__ from template "chat-story" (group-chat skit: bubbles every 1-1.5 s, then the answer in 3 taps)
+# Uses the Remotion chat-bubbles look (generic chat UI, clearly a skit). Real app screens for the payoff.
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+timeline:
+  - section: chat
+    text: none
+    clips:
+      - motion: chat-bubbles
+        dur: 7.0
+        props:
+          messages:
+            - {from: them, name: "Sis", text: "do you have the hotel booking??"}
+            - {from: them, name: "Dad", text: "the front desk is asking"}
+            - {from: me, text: "hold on"}
+            - {from: them, name: "Sis", text: "why would I have it 😭"}
+  - section: answer
+    text: "**3 taps.** Done."
+    text_style: native_pill
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 6.0, layout: iphone, transition: {type: whip, dir: left}}
+audio:
+  music: {generate: {bpm: 108, key: G, drop: 7.0}, volume: -7}
+  sfx: [{sound: bubble, at: 0.6, volume: -16}, {sound: bubble, at: 1.9, volume: -16}, {sound: bubble, at: 3.1, volume: -16}]

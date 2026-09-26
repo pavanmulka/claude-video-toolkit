@@ -1,0 +1,36 @@
+# Python / venv
+.venv/
+__pycache__/
+*.pyc
+
+# Working files: analysis, previews, caches, proxies
+.work/
+.cache/
+
+# Your drop folder: clips, voice-overs and exports never go into git
+inbox/*
+!inbox/.gitkeep
+
+# Large or licensed media anywhere else
+*.mp4
+*.mov
+*.m4v
+*.mkv
+*.webm
+*.aiff
+*.mp3
+*.m4a
+brand/music/**/*.wav
+brand/music/**/*.flac
+
+# macOS
+.DS_Store
+
+# Fonts are restored with ./vtk fonts --sync (from the Homebrew font casks); keep only the licence notes
+brand/fonts/**/*.ttf
+brand/fonts/**/*.otf
+
+# Your private workspace (brands, video specs, ideas, your rules for Claude) and the file that loads it.
+# ./setup.sh creates both from workspace.example/; they never go into this shared repo.
+workspace/
+CLAUDE.local.md

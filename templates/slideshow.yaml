@@ -1,0 +1,22 @@
+# __NAME__ — created __DATE__ from template "slideshow" (6 slides: hook with a person + conflict -> problem -> reveal ->
+# reaction -> CTA -> follow). Swap the colour cards for images: {image: slide1.png, dur: 2.5, layout: fullbleed}.
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: sunset_mesh
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  text_style: clean_title
+  text_pos: center
+  text_anim: {by: word, effect: rise, stagger: 0.06}
+  transition: {type: slide, dir: left}
+timeline:
+  - {section: s1, text: "I got to the\n**check-in desk**", clips: [{color: transparent, dur: 2.6}]}
+  - {section: s2, text: "They needed my\n**booking number**", clips: [{color: transparent, dur: 2.4}]}
+  - {section: s3, text: "I had it in\n**3 taps**", clips: [{src: __CLIP1__, in: 0.0, dur: 3.0, layout: iphone}]}
+  - {section: s4, text: "The agent was **shocked** 😂", clips: [{color: transparent, dur: 2.2}]}
+  - {section: s5, text: "Every trip,\n**one place.**", clips: [{color: transparent, dur: 2.4}]}
+audio:
+  music: {generate: {bpm: 100, key: F, drop: 0.2}, volume: -7}

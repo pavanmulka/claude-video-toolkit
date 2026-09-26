@@ -1,0 +1,5 @@
+# Optional: voice-over noise cleanup with DeepFilterNet (pulls in PyTorch, ~1-2 GB).
+# DeepFilterNet 0.5.6 imports torchaudio.backend, which newer torchaudio removed -> pin torch/torchaudio.
+torch==2.2.2
+torchaudio==2.2.2
+deepfilternet==0.5.6

@@ -1,0 +1,119 @@
+# Visual themes: one line in a spec (`theme: deep_space`) restyles the whole video: background behind the
+# phone/cards, colours, text + caption styles, marker colour, film look and default motion.
+# A theme is merged over the brand, so the brand accent (e.g. a teal app accent) is kept unless a theme sets it.
+# Keep product UI clean: film grain lives in the background (bg `grain`/look `grain` is subtle by default).
+
+deep_space:               # dark navy stage, purple halo + floor light, faint drifting stars (premium SaaS look)
+  colors: {glow: "#6D4BFF", accent2: "#4B7BFF", muted: "#9A8FB0"}
+  background: {type: glow, color: "#07060F", accent: glow, accent2: accent2, stars: true}
+  text_styles:
+    title: {glow: {color: glow, blur: 26, strength: 0.9}}
+  look: {vignette: 0.25, bloom: 0.1}
+  defaults:
+    drift: 0.035
+    enter: {rise: 110, dur: 0.6, fade: 0.0, ease: spring_soft, tilt: [16, -12], scale: 0.9}
+
+neon_glow:                # black with neon accent glow on text and marks
+  colors: {glow: accent}
+  background: {type: glow, color: "#030305", accent: accent, accent2: "#FF3FA4", stars: false,
+               glows: [{pos: ["50%", "105%"], color: accent, radius: 0.55, strength: 0.45},
+                       {pos: ["50%", "-5%"], color: "#FF3FA4", radius: 0.45, strength: 0.3}]}
+  text_styles:
+    title: {glow: {color: accent, blur: 24, strength: 1.3}}
+    hook: {glow: {color: accent, blur: 30, strength: 1.0}}
+  marks: {color: accent, glow: 10}
+  look: {bloom: 0.18, vignette: 0.3}
+  defaults:
+    drift: 0.03
+
+airy_light:               # soft lavender light background, dark text, gentle shadows (clean, calm)
+  colors: {text: "#16121F", shadow: "#6B5B95", paper: "#F6F3FF"}
+  background: {type: mesh, base: "#F7F4FF", colors: ["#E4DBFF", "#FFE3F1", "#DDF3FF", "#FFFFFF"], speed: 0.7, size: 0.5}
+  text_styles:
+    title: {color: "#16121F", accent: accent_dark, shadow: {blur: 20, opacity: 0.18, dy: 6, color: "#6B5B95"}}
+    clean_title: {color: "#16121F", accent: accent_dark, shadow: {blur: 20, opacity: 0.15, dy: 6, color: "#6B5B95"}}
+    body: {color: "#16121F", accent: accent_dark, shadow: {blur: 12, opacity: 0.12, dy: 4, color: "#6B5B95"}}
+    hook: {color: "#16121F", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: {blur: 18, opacity: 0.15, dy: 6, color: "#6B5B95"}}
+    kinetic: {color: "#16121F", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: {blur: 18, opacity: 0.15, dy: 6, color: "#6B5B95"}}
+  marks: {color: "#6D4BFF"}
+  defaults:
+    drift: 0.025
+    enter: {rise: 80, dur: 0.5, fade: 0.0, ease: spring_soft, scale: 0.94}
+
+editorial:                # warm paper, serif italic accents, film grain, hand-drawn marks (Canva 'imperfect by design')
+  colors: {text: "#1A1714", accent: "#C8452C", shadow: "#8A7B66"}
+  background: {type: paper, color: "#F3EEE4"}
+  text_styles:
+    title: {family: Instrument Serif, weight: 400, size: 150, color: "#1A1714", shadow: null,
+            accent_font: {family: Instrument Serif, italic: true, weight: 400}}
+    editorial: {color: "#1A1714", shadow: null}
+    body: {color: "#1A1714", shadow: null}
+    hook: {family: Instrument Serif, weight: 400, case: null, size: 160, color: "#1A1714", stroke: {width: 0, color: "#000000"}, shadow: null,
+           accent_font: {family: Instrument Serif, italic: true, weight: 400}}
+  marks: {color: "#C8452C", highlight_color: "#FFD95A"}
+  look: {grain: 0.12, warmth: 0.25, lift: 0.03, saturation: 0.95}
+
+sunset_mesh:              # drifting peach / pink / lavender gradient blobs, dark text
+  colors: {text: "#1E1422"}
+  background: {type: mesh, base: "#FFF3EA", colors: ["#FFC9A8", "#FF9EC4", "#B8A2FF", "#FFE9B8"], speed: 1.0, size: 0.46}
+  text_styles:
+    title: {color: "#1E1422", accent: accent_dark, shadow: {blur: 18, opacity: 0.18, dy: 6, color: "#7A3E5C"}}
+    clean_title: {color: "#1E1422", accent: accent_dark, shadow: {blur: 18, opacity: 0.15, dy: 6, color: "#7A3E5C"}}
+    body: {color: "#1E1422", accent: accent_dark, shadow: {blur: 12, opacity: 0.12, dy: 4, color: "#7A3E5C"}}
+    hook: {color: "#1E1422", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: {blur: 18, opacity: 0.18, dy: 6, color: "#7A3E5C"}}
+    kinetic: {color: "#1E1422", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: {blur: 18, opacity: 0.18, dy: 6, color: "#7A3E5C"}}
+  marks: {color: "#E0245E"}
+  defaults:
+    drift: 0.03
+
+electric:                 # black tech grid, electric accent, sharp and fast
+  colors: {accent2: "#00E5FF"}
+  background: {type: grid, color: "#05060A", accent: accent, glow: 0.18, line_opacity: 0.08, speed: 22}
+  text_styles:
+    title: {glow: {color: accent, blur: 18, strength: 0.8}}
+  marks: {color: accent, glow: 6}
+  look: {chroma: 1.5, vignette: 0.3}
+  defaults:
+    drift: 0.04
+
+aurora:                   # dark with slow aurora ribbons (calm premium)
+  background: {type: aurora, color: "#04050B", colors: ["#3CF2C5", "#6D4BFF", "#FF5FA2"], speed: 0.8}
+  look: {vignette: 0.25, bloom: 0.08}
+  defaults:
+    drift: 0.03
+
+clean_white:              # white studio, black type, no effects (Apple-like minimal)
+  colors: {text: "#0B0B0F", shadow: "#9AA0AE"}
+  background: {type: spotlight, color: "#F4F5F7", accent: "#FFFFFF", strength: 0.6, radius: 0.5}
+  text_styles:
+    title: {color: "#0B0B0F", accent: accent_dark, shadow: null}
+    clean_title: {color: "#0B0B0F", accent: accent_dark, shadow: null}
+    body: {color: "#0B0B0F", accent: accent_dark, shadow: null}
+    hook: {color: "#0B0B0F", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: null}
+    kinetic: {color: "#0B0B0F", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: null}
+  marks: {color: "#FF3B30"}
+
+bold_pop:                 # loud promo energy: rotating yellow rays, caps stickers, punchy pops (use sparingly)
+  colors: {text: "#111111"}
+  background: {type: rays, color: "#FFD84D", color2: "#FFB400", count: 18, speed: 0.3}
+  text_styles:
+    title: {color: "#111111", accent: "#111111", shadow: null, stroke: {width: 0, color: "#000000"},
+            accent_box: {color: "#FFFFFF", pad: [14, 2], radius: 12}}
+    hook: {color: "#FFFFFF", accent: "#FFFFFF", stroke: {width: 12, color: "#111111"}}
+  marks: {color: "#111111"}
+  defaults:
+    drift: 0.04
+    text_anim: {by: word, effect: stamp, stagger: 0.12, in: 0.3}
+
+lofi:                     # grainy film look, warm and faded, typewriter text (anti-polish, native)
+  background: {type: noise, color: "#15120F", grain: 9}
+  look: {grain: 0.16, warmth: 0.3, lift: 0.05, saturation: 0.88, contrast: 0.96, vignette: 0.35}
+  defaults:
+    text_anim: {by: letter, effect: type, stagger: 0.03, caret: true}
+
+midnight_plum:            # plum night stage with teal floor light
+  background: {type: glow, color: "#0B0412", accent: "#6B2C7A", accent2: accent, stars: true, stars_amount: 0.6}
+  look: {vignette: 0.22, bloom: 0.08}
+  defaults:
+    drift: 0.03
+    enter: {rise: 100, dur: 0.55, fade: 0.0, ease: spring_soft, tilt: [12, -8], scale: 0.93}

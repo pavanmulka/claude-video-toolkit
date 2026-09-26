@@ -1,0 +1,34 @@
+# __NAME__ — created __DATE__ from template "wish-i-knew" (3-5 tips x 4-6 s; the app appears in one tip only)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: editorial
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  text_style: editorial
+  text_pos: upper_third
+  text_anim: {by: word, effect: rise, stagger: 0.07}
+timeline:
+  - section: hook
+    text: "Things I wish I knew\nbefore my **first big trip**"
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {color: transparent, dur: 2.4}
+  - section: tip1
+    text: "Keep a **list** of every booking"
+    clips:
+      - {color: transparent, dur: 4.5}
+    overlays:
+      - {mark: {type: underline, rect: [200, 700, 680, 60], draw: 0.5, delay: 0.8}}
+  - section: tip2
+    text: "Photograph **both sides** of every card"
+    clips:
+      - {color: transparent, dur: 4.5}
+  - section: tip3
+    text: "Put it all **under the trip**"
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 5.0, layout: iphone}
+audio:
+  music: {generate: {bpm: 90, key: C, drop: 0.5}, volume: -8}

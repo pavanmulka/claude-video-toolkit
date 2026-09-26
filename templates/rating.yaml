@@ -1,0 +1,37 @@
+# __NAME__ — created __DATE__ from template "rating" (rating X: 3-4 s per option with a score sticker; honest, no attacks)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: bold_pop
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  text_style: sticker
+  text_pos: ["50%", "20%"]
+timeline:
+  - section: hook
+    text: "Rating ways to keep\n**travel docs** 📋"
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {color: transparent, dur: 2.0}
+  - section: paper
+    text: "Paper folder"
+    clips:
+      - {color: transparent, dur: 3.2}
+    overlays:
+      - {counter: {from: 0, to: 4, suffix: "/10", dur: 0.8, delay: 0.8}, style: counter, pos: center, anim: stamp}
+  - section: notes
+    text: "Notes app"
+    clips:
+      - {color: transparent, dur: 3.2}
+    overlays:
+      - {counter: {from: 0, to: 6, suffix: "/10", dur: 0.8, delay: 0.8}, style: counter, pos: center, anim: stamp}
+  - section: our-app
+    text: "Our app"
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 4.0, layout: iphone}
+    overlays:
+      - {counter: {from: 0, to: 10, suffix: "/10", dur: 0.8, delay: 1.5}, style: counter, pos: ["50%", "85%"], anim: stamp}
+audio:
+  music: {generate: {bpm: 124, key: E, drop: 2.0}, volume: -6}

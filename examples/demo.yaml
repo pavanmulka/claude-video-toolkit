@@ -1,0 +1,26 @@
+# Demo: renders with no footage, so it checks a fresh setup:  ./vtk render examples/demo.yaml --preview
+# A theme background, a kinetic hook, a counter with a drawn circle, an end line, a generated music bed. ~8 s.
+version: 1
+name: demo
+brand: default
+theme: deep_space
+output: {file: ../.work/tests/demo.mp4, aspect: "9:16", fps: 30}
+timeline:
+  - section: hook
+    text: {content: "EVERY VIDEO\nIS A **SPEC.**", style: kinetic, pos: center}
+    text_anim: {by: word, effect: stamp, stagger: 0.12, in: 0.28, ease: spring}
+    clips:
+      - {color: transparent, dur: 2.6}
+  - section: count
+    text: {content: "Rendered from **one YAML file**", style: clean_title, pos: upper_third}
+    clips:
+      - {color: transparent, dur: 2.8, transition: {type: whip, dir: left}}
+    overlays:
+      - {counter: {from: 0, to: 100, suffix: "%", dur: 1.2, delay: 0.3}, style: counter, pos: ["50%", "52%"], anim: pop}
+      - {mark: {type: circle, rect: [290, 850, 500, 260], draw: 0.45, delay: 1.6}}
+  - section: end
+    text: {content: "Your turn.\n**Drop your clips.**", style: clean_title, pos: center}
+    clips:
+      - {color: transparent, dur: 2.4, transition: {type: crossfade, dur: 0.25}}
+audio:
+  music: {generate: {bpm: 120, key: D, seed: 7}, volume: -8}

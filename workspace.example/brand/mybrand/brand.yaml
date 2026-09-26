@@ -1,0 +1,9 @@
+# Your brand: extends the engine's default brand (brand/default/brand.yaml); override only what you need.
+# See CLAUDE.md "Brands" for every key. Put logo.png (square app icon) and endcard.png (1080x1920) next to this file.
+extends: default
+colors:
+  accent: "#FFD84D"                 # your brand colour: keywords, chips, marks
+vocabulary: [MyApp]                 # product names Whisper should spell right in captions
+caption_replace: {"My app": "MyApp"}
+output:
+  loudness: -14

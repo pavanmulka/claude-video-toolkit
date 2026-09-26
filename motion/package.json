@@ -1,0 +1,37 @@
+{
+  "name": "vtk-motion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion motion-graphics looks for claude-video-toolkit (rendered as layers by the Python engine)",
+  "type": "module",
+  "scripts": {
+    "studio": "node render.mjs --sync-fonts && remotion studio src/index.ts",
+    "render": "node render.mjs",
+    "catalog": "node scripts/catalog.mjs",
+    "sync-fonts": "node render.mjs --sync-fonts",
+    "typecheck": "tsc --noEmit",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.527",
+    "@remotion/cli": "4.0.527",
+    "@remotion/fonts": "4.0.527",
+    "@remotion/layout-utils": "4.0.527",
+    "@remotion/motion-blur": "4.0.527",
+    "@remotion/noise": "4.0.527",
+    "@remotion/paths": "4.0.527",
+    "@remotion/renderer": "4.0.527",
+    "@remotion/shapes": "4.0.527",
+    "@remotion/zod-types": "4.0.527",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.527",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "@types/react": "^19.2.2",
+    "esbuild": "0.28.1",
+    "typescript": "5.9.3"
+  }
+}

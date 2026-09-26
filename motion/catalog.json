@@ -1,0 +1,7614 @@
+[
+ {
+  "id": "text-burst",
+  "category": "text",
+  "kind": "overlay",
+  "description": "1-3 big words punch in at the centre (scale-slam with zoom ghosts), radial speed lines, shockwave ring, soft glow and sparkles; accent words in the accent colour.",
+  "default_duration": 2.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 2.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 900,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 82,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 900,
+     "stretch": 82
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "IT'S **HERE.**",
+    "description": "Words (1-3 read best). **word** = accent colour, \\n = line break"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 700,
+    "default": 210,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.86,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": true,
+    "description": "ALL CAPS"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 2,
+    "default": 0.14,
+    "description": "Seconds between word punches"
+   },
+   "lines": {
+    "type": "boolean",
+    "default": true,
+    "description": "Radial speed lines on impact"
+   },
+   "rays": {
+    "type": "integer",
+    "min": 0,
+    "max": 160,
+    "default": 34,
+    "description": "Number of speed lines"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.8,
+    "description": "Glow intensity 0-1"
+   },
+   "shake": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.6,
+    "description": "Camera shake on impact 0-1"
+   },
+   "sparkles": {
+    "type": "boolean",
+    "default": true,
+    "description": "Twinkling sparkles around the words after impact"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-assemble",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Letters fly in from scattered positions, rotations and scales (with blur) and spring into a clean line; accent words coloured; a light shimmer sweeps across once assembled.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "Built for **travelers.**",
+    "description": "Text; **word** = accent colour, *word* = italic font2, \\n = line break"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 500,
+    "default": 132,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.86,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": false,
+    "description": "ALL CAPS"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 0.5,
+    "default": 0.035,
+    "description": "Seconds between letters"
+   },
+   "spread": {
+    "type": "number",
+    "min": 0,
+    "max": 3000,
+    "default": 560,
+    "description": "How far letters start from their final place (design units)"
+   },
+   "spin": {
+    "type": "number",
+    "min": 0,
+    "max": 720,
+    "default": 150,
+    "description": "Max start rotation of a letter in degrees"
+   },
+   "order": {
+    "type": "enum",
+    "values": [
+     "random",
+     "left",
+     "center"
+    ],
+    "default": "random",
+    "description": "Letter arrival order"
+   },
+   "shimmer": {
+    "type": "boolean",
+    "default": true,
+    "description": "Light sweep across the word once assembled"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.6,
+    "description": "Glow intensity 0-1"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-trail",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Words appear one at a time, each revealed by a bright spark sweeping across it with a comet trail and shed particles; revealed words flash with a soft glow.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "Every **flight.** Every **hotel.**\nOne place.",
+    "description": "Text; **word** = accent colour, *word* = italic font2, \\n = line break"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 400,
+    "default": 104,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.86,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": false,
+    "description": "ALL CAPS"
+   },
+   "wordDuration": {
+    "type": "number",
+    "min": 0.05,
+    "max": 3,
+    "default": 0.3,
+    "description": "Seconds the spark takes to sweep across one word"
+   },
+   "gap": {
+    "type": "number",
+    "min": 0,
+    "max": 3,
+    "default": 0.06,
+    "description": "Pause between words in seconds"
+   },
+   "trail": {
+    "type": "number",
+    "min": 0,
+    "max": 2000,
+    "default": 260,
+    "description": "Maximum trail length (design units)"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.7,
+    "description": "Glow intensity 0-1"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-italic",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Editorial line: sans words rise in with blur, the *italic* serif accent word (font2, Instrument Serif) lands larger in the accent colour and a hand-drawn underline draws itself beneath it.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "Plan less.\n*Travel more.*",
+    "description": "Text; *word* = italic font2 accent (underlined), **word** = accent colour, \\n = line break"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 400,
+    "default": 112,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "emScale": {
+    "type": "number",
+    "min": 0.5,
+    "max": 2,
+    "default": 1.22,
+    "description": "Size of the italic words relative to the sans words"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.86,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.09,
+    "description": "Seconds between words"
+   },
+   "underline": {
+    "type": "boolean",
+    "default": true,
+    "description": "Hand-drawn underline under the italic words"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Glow intensity 0-1"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-typewriter",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Text types itself character by character (natural cadence, pauses at punctuation) in Space Mono with a glowing blinking caret; **accent** words get an accent chip swept behind them after typing. box=field wraps it in a frosted search/prompt field.",
+  "default_duration": 3.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "Where's my **boarding pass?**",
+    "description": "Text to type; **word** = highlighted after typing, \\n = line break"
+   },
+   "mono": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Space Mono",
+      "description": "Typewriter font family (monospace looks most authentic; any brand family works)"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 700,
+      "description": "Font weight"
+     }
+    },
+    "default": {
+     "family": "Space Mono",
+     "weight": 700
+    },
+    "description": "Font used for the typed text (default Space Mono)"
+   },
+   "size": {
+    "type": "number",
+    "min": 12,
+    "max": 300,
+    "default": 76,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.84,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "cps": {
+    "type": "number",
+    "min": 1,
+    "max": 200,
+    "default": 17,
+    "description": "Typing speed in characters per second"
+   },
+   "start": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Seconds of blinking caret before typing starts"
+   },
+   "caret": {
+    "type": "boolean",
+    "default": true,
+    "description": "Show the caret"
+   },
+   "highlight": {
+    "type": "boolean",
+    "default": true,
+    "description": "Sweep an accent chip behind the **accent** words once typing is done"
+   },
+   "align": {
+    "type": "enum",
+    "values": [
+     "left",
+     "center"
+    ],
+    "default": "left",
+    "description": "Text alignment inside the block"
+   },
+   "box": {
+    "type": "enum",
+    "values": [
+     "none",
+     "field"
+    ],
+    "default": "none",
+    "description": "none = bare text; field = frosted input field with search icon and send button"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-stack",
+  "category": "text",
+  "kind": "overlay",
+  "description": "2-5 short heavy condensed lines slam in one after another (scale-slam, blur, flash) with a tiny camera shake on each; the **accent** line lands on an accent chip. justify=true makes a poster stack.",
+  "default_duration": 2.8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 2.8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 900,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 75,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 900,
+     "stretch": 75
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "lines": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "STOP",
+     "DIGGING",
+     "THROUGH",
+     "**EMAILS.**"
+    ],
+    "description": "2-5 short lines, one slam each; a line containing **...** gets the accent chip"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 600,
+    "default": 190,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "lineHeight": {
+    "type": "number",
+    "min": 0.6,
+    "max": 2,
+    "default": 0.9,
+    "description": "Line height (em)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.84,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": true,
+    "description": "ALL CAPS"
+   },
+   "justify": {
+    "type": "boolean",
+    "default": false,
+    "description": "Scale each line to the same width (poster stack)"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0.02,
+    "max": 3,
+    "default": 0.26,
+    "description": "Seconds between line slams"
+   },
+   "shake": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.7,
+    "description": "Camera shake per slam 0-1"
+   },
+   "chip": {
+    "type": "boolean",
+    "default": true,
+    "description": "Accent lines sit on an accent chip (dark text)"
+   },
+   "align": {
+    "type": "enum",
+    "values": [
+     "center",
+     "left"
+    ],
+    "default": "center",
+    "description": "Stack alignment"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Glow intensity 0-1"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-marker",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Words fade up, then a highlighter pen sweeps behind the **accent** words (rough hand-drawn edges, streak texture, slight tilt) and the text under it flips to dark ink for contrast.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "text": {
+    "type": "string",
+    "default": "Keep **every detail**\nin one place.",
+    "description": "Text; **words** get the highlighter sweep, *word* = italic font2, \\n = line break"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 400,
+    "default": 100,
+    "description": "Font size in design units (auto-shrinks to fit)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.86,
+    "description": "Max text width as a fraction of the frame width"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": false,
+    "description": "ALL CAPS"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.07,
+    "description": "Seconds between words fading in"
+   },
+   "sweep": {
+    "type": "number",
+    "min": 0.1,
+    "max": 3,
+    "default": 0.5,
+    "description": "Seconds for one highlighter stroke"
+   },
+   "marker": {
+    "type": "string",
+    "default": "",
+    "description": "Highlighter colour (hex); empty = theme.accent"
+   },
+   "opacity": {
+    "type": "number",
+    "min": 0.1,
+    "max": 1,
+    "default": 0.95,
+    "description": "Highlighter opacity"
+   },
+   "tilt": {
+    "type": "number",
+    "min": -10,
+    "max": 10,
+    "default": -1.1,
+    "description": "Highlighter tilt in degrees"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "text-strike",
+  "category": "text",
+  "kind": "overlay",
+  "description": "Correction beat: shows the `from` word, a glowing line strikes through it, it tips and drops away with gravity, and the accent `to` word springs in with a glow flash and sparkles (e.g. folders -> people).",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "prefix": {
+    "type": "string",
+    "default": "Plan with",
+    "description": "Line above the swapped word (optional)"
+   },
+   "from": {
+    "type": "string",
+    "default": "spreadsheets",
+    "description": "Word that gets struck through and drops away"
+   },
+   "to": {
+    "type": "string",
+    "default": "**one app.**",
+    "description": "Word that pops in (**accent** markup; plain text is accent-coloured automatically)"
+   },
+   "suffix": {
+    "type": "string",
+    "default": "",
+    "description": "Line below (optional)"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 500,
+    "default": 170,
+    "description": "Size of the swapped word (design units, auto-fits)"
+   },
+   "prefixSize": {
+    "type": "number",
+    "min": 10,
+    "max": 300,
+    "default": 72,
+    "description": "Size of the prefix/suffix lines (design units)"
+   },
+   "swapAt": {
+    "type": "number",
+    "min": 0.1,
+    "max": 20,
+    "default": 0.95,
+    "description": "Seconds until the strike-through starts"
+   },
+   "strikeColor": {
+    "type": "color",
+    "default": "#FF4D6D",
+    "description": "Strike-through colour"
+   },
+   "upper": {
+    "type": "boolean",
+    "default": false,
+    "description": "ALL CAPS"
+   },
+   "sparkles": {
+    "type": "boolean",
+    "default": true,
+    "description": "Sparkles when the new word lands"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "stat-counter",
+  "category": "number",
+  "kind": "overlay",
+  "description": "Big number counts from `from` to `to` (expo ease, motion blur while fast, bump + glow + light sweep when it lands) with a label below and a giant outline copy drifting behind. Formats: integer, decimal, percent, currency, time (m:ss), compact (12.4K); decimals follow `to` unless set.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 900,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 900,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "from": {
+    "type": "number",
+    "min": -1000000000000,
+    "max": 1000000000000,
+    "default": 0,
+    "description": "Start value"
+   },
+   "to": {
+    "type": "number",
+    "min": -1000000000000,
+    "max": 1000000000000,
+    "default": 12400,
+    "description": "End value"
+   },
+   "format": {
+    "type": "enum",
+    "values": [
+     "integer",
+     "decimal",
+     "percent",
+     "currency",
+     "time",
+     "compact"
+    ],
+    "default": "integer",
+    "description": "integer 12,400 | decimal 4.8 | percent 98% | currency $1,200 | time m:ss (value in seconds) | compact 12.4K"
+   },
+   "decimals": {
+    "type": "integer",
+    "min": -1,
+    "max": 6,
+    "default": -1,
+    "description": "Decimals shown while counting; -1 = automatic: as many as `to` has (118 -> 0, 4.5 -> 1)"
+   },
+   "prefix": {
+    "type": "string",
+    "default": "",
+    "description": "Text before the number (e.g. \"+\", \"~\")"
+   },
+   "suffix": {
+    "type": "string",
+    "default": "",
+    "description": "Text after the number (e.g. \"x\", \" hrs\")"
+   },
+   "currency": {
+    "type": "string",
+    "default": "$",
+    "description": "Currency symbol for format=currency"
+   },
+   "separator": {
+    "type": "string",
+    "default": ",",
+    "description": "Thousands separator"
+   },
+   "label": {
+    "type": "string",
+    "default": "trips **organized**",
+    "description": "Label under the number (**accent** markup)"
+   },
+   "countDuration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 30,
+    "default": 1.8,
+    "description": "Seconds the count takes"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 800,
+    "default": 250,
+    "description": "Number size in design units (auto-fits the width)"
+   },
+   "labelSize": {
+    "type": "number",
+    "min": 10,
+    "max": 200,
+    "default": 58,
+    "description": "Label size in design units"
+   },
+   "outline": {
+    "type": "boolean",
+    "default": true,
+    "description": "Giant outline copy of the number drifting behind"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.7,
+    "description": "Glow intensity 0-1"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.47,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "timer",
+  "category": "number",
+  "kind": "overlay",
+  "description": "Call-timer style clocks (m:ss in Space Mono) that count up or down with a label and pulsing dot; compare mode shows e.g. \"The old way 3:47\" vs \"With the app 0:12\" - bad timers finish red with a shake, good ones finish in accent with a check.",
+  "default_duration": 4.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "items": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "Timer",
+       "description": "Label above the digits"
+      },
+      "from": {
+       "type": "number",
+       "min": 0,
+       "max": 360000,
+       "default": 0,
+       "description": "Start time in seconds"
+      },
+      "to": {
+       "type": "number",
+       "min": 0,
+       "max": 360000,
+       "default": 60,
+       "description": "End time in seconds (smaller than from = counts down)"
+      },
+      "tone": {
+       "type": "enum",
+       "values": [
+        "neutral",
+        "bad",
+        "good"
+       ],
+       "default": "neutral",
+       "description": "bad = red finish, good = accent finish with a check"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "The old way",
+      "from": 0,
+      "to": 227,
+      "tone": "bad"
+     },
+     {
+      "label": "With the app",
+      "from": 0,
+      "to": 12,
+      "tone": "good"
+     }
+    ],
+    "description": "1-3 timers shown one after another, e.g. 3:47 vs 0:12"
+   },
+   "mono": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Space Mono",
+      "description": "Digit font family"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 700,
+      "description": "Font weight"
+     }
+    },
+    "default": {
+     "family": "Space Mono",
+     "weight": 700
+    },
+    "description": "Font for the digits (default Space Mono)"
+   },
+   "countDuration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 60,
+    "default": 1.4,
+    "description": "Seconds each count takes (ignored when realtime)"
+   },
+   "realtime": {
+    "type": "boolean",
+    "default": false,
+    "description": "Tick one second per second like a real call timer"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 30,
+    "default": 1.7,
+    "description": "Seconds between timers"
+   },
+   "size": {
+    "type": "number",
+    "min": 20,
+    "max": 500,
+    "default": 150,
+    "description": "Digit size in design units"
+   },
+   "badColor": {
+    "type": "color",
+    "default": "#FF5A6E",
+    "description": "Colour for tone=bad"
+   },
+   "vs": {
+    "type": "boolean",
+    "default": true,
+    "description": "Show a \"vs\" chip between two timers"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "logo-stamp",
+  "category": "brand",
+  "kind": "overlay",
+  "description": "Logo stamps down from big (blur, squash-and-stretch, shockwave ring, particles, tiny camera shake), wordmark letters rise in, tagline tracks in; a light sweep crosses logo and wordmark while the logo floats on a breathing glow.",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "logo": {
+    "type": "string",
+    "default": "",
+    "description": "Logo image; empty = monogram tile from the name (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "name": {
+    "type": "string",
+    "default": "Your App",
+    "description": "Wordmark text (empty = logo only)"
+   },
+   "tagline": {
+    "type": "string",
+    "default": "Every trip, one place.",
+    "description": "Small line under the wordmark (optional)"
+   },
+   "logoSize": {
+    "type": "number",
+    "min": 20,
+    "max": 900,
+    "default": 240,
+    "description": "Logo size in design units"
+   },
+   "nameSize": {
+    "type": "number",
+    "min": 10,
+    "max": 400,
+    "default": 116,
+    "description": "Wordmark size in design units"
+   },
+   "taglineSize": {
+    "type": "number",
+    "min": 8,
+    "max": 200,
+    "default": 46,
+    "description": "Tagline size in design units"
+   },
+   "shape": {
+    "type": "enum",
+    "values": [
+     "app",
+     "circle",
+     "none"
+    ],
+    "default": "app",
+    "description": "Logo clip: app-icon squircle, circle, or none (image as is)"
+   },
+   "layout": {
+    "type": "enum",
+    "values": [
+     "auto",
+     "stack",
+     "row"
+    ],
+    "default": "auto",
+    "description": "stack = logo above wordmark, row = logo left of wordmark, auto = row on landscape"
+   },
+   "shine": {
+    "type": "boolean",
+    "default": true,
+    "description": "Light sweep across logo and wordmark"
+   },
+   "ring": {
+    "type": "boolean",
+    "default": true,
+    "description": "Shockwave ring + particles on impact"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "end-card",
+  "category": "brand",
+  "kind": "overlay",
+  "description": "End card: logo pops in on a breathing glow, headline words rise in, CTA pill springs up then pulses with a radar ping and a recurring shine sweep; optional star rating + App-Store-style subline.",
+  "default_duration": 4,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "logo": {
+    "type": "string",
+    "default": "",
+    "description": "Logo image; empty = monogram tile from the name (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "name": {
+    "type": "string",
+    "default": "Your App",
+    "description": "App / brand name (used for the monogram and shown next to the logo when showName)"
+   },
+   "showName": {
+    "type": "enum",
+    "values": [
+     "none",
+     "below",
+     "right"
+    ],
+    "default": "none",
+    "description": "Show the name as a wordmark next to the logo"
+   },
+   "headline": {
+    "type": "string",
+    "default": "Every trip,\n**one place.**",
+    "description": "Headline (**accent**, *italic* font2, \\n)"
+   },
+   "cta": {
+    "type": "string",
+    "default": "Get the app",
+    "description": "Button label (empty = no button)"
+   },
+   "ctaIcon": {
+    "type": "enum",
+    "values": [
+     "arrow",
+     "download",
+     "none"
+    ],
+    "default": "arrow",
+    "description": "Icon on the button"
+   },
+   "subline": {
+    "type": "string",
+    "default": "On the App Store",
+    "description": "Small line under the button (empty = none)"
+   },
+   "rating": {
+    "type": "number",
+    "min": 0,
+    "max": 5,
+    "default": 0,
+    "description": "Star rating shown with the subline (0 = hidden, e.g. 4.8)"
+   },
+   "logoSize": {
+    "type": "number",
+    "min": 20,
+    "max": 600,
+    "default": 190,
+    "description": "Logo size in design units"
+   },
+   "headlineSize": {
+    "type": "number",
+    "min": 10,
+    "max": 300,
+    "default": 96,
+    "description": "Headline size in design units"
+   },
+   "ctaSize": {
+    "type": "number",
+    "min": 10,
+    "max": 200,
+    "default": 56,
+    "description": "Button text size in design units"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "emoji-burst",
+  "category": "fx",
+  "kind": "overlay",
+  "description": "Physics burst of emojis (Apple Color Emoji) and flipping confetti in theme colours from a point: launch cone, drag, gravity, spin, pop-in and fade; soft flash + ring at the origin. Several bursts via `bursts`.",
+  "default_duration": 2.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 2.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "emojis": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "❤️",
+     "✨",
+     "🎉",
+     "💜",
+     "⭐"
+    ],
+    "description": "Emoji characters (Apple Color Emoji) to burst"
+   },
+   "count": {
+    "type": "integer",
+    "min": 0,
+    "max": 300,
+    "default": 30,
+    "description": "Emoji particles per burst"
+   },
+   "confetti": {
+    "type": "integer",
+    "min": 0,
+    "max": 400,
+    "default": 28,
+    "description": "Confetti pieces per burst (theme colours)"
+   },
+   "bursts": {
+    "type": "array",
+    "items": {
+     "type": "number"
+    },
+    "default": [
+     0.08
+    ],
+    "description": "Burst start times in seconds"
+   },
+   "origin": {
+    "type": "array",
+    "items": [
+     {
+      "type": "number"
+     },
+     {
+      "type": "number"
+     }
+    ],
+    "length": 2,
+    "default": [
+     0.5,
+     0.64
+    ],
+    "description": "Burst origin as [x, y] fractions of the frame"
+   },
+   "direction": {
+    "type": "number",
+    "min": -360,
+    "max": 360,
+    "default": -90,
+    "description": "Main direction in degrees (-90 = up, 0 = right)"
+   },
+   "spread": {
+    "type": "number",
+    "min": 0,
+    "max": 360,
+    "default": 110,
+    "description": "Cone angle in degrees (360 = all around)"
+   },
+   "speed": {
+    "type": "number",
+    "min": 0,
+    "max": 10000,
+    "default": 1700,
+    "description": "Launch speed (design units per second)"
+   },
+   "gravity": {
+    "type": "number",
+    "min": -10000,
+    "max": 20000,
+    "default": 2600,
+    "description": "Gravity (design units per second squared)"
+   },
+   "size": {
+    "type": "number",
+    "min": 8,
+    "max": 400,
+    "default": 78,
+    "description": "Emoji size (design units)"
+   },
+   "life": {
+    "type": "number",
+    "min": 0.2,
+    "max": 20,
+    "default": 2.1,
+    "description": "Particle lifetime in seconds"
+   },
+   "flash": {
+    "type": "boolean",
+    "default": true,
+    "description": "Soft flash + ring at the origin"
+   }
+  }
+ },
+ {
+  "id": "progress-bar",
+  "category": "fx",
+  "kind": "overlay",
+  "description": "Thin watch-time bar on the top or bottom edge that fills across the whole duration: accent gradient, glow, shimmer and a glowing head; optional stories-style segments.",
+  "default_duration": 10,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 10,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "position": {
+    "type": "enum",
+    "values": [
+     "top",
+     "bottom"
+    ],
+    "default": "top",
+    "description": "Edge the bar sits on"
+   },
+   "thickness": {
+    "type": "number",
+    "min": 1,
+    "max": 80,
+    "default": 10,
+    "description": "Bar thickness (design units)"
+   },
+   "inset": {
+    "type": "number",
+    "min": 0,
+    "max": 1000,
+    "default": 0,
+    "description": "Distance from the edge (design units)"
+   },
+   "margin": {
+    "type": "number",
+    "min": 0,
+    "max": 1000,
+    "default": 0,
+    "description": "Left/right margin (design units)"
+   },
+   "from": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0,
+    "description": "Progress at the start (0-1)"
+   },
+   "to": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 1,
+    "description": "Progress at the end (0-1)"
+   },
+   "segments": {
+    "type": "integer",
+    "min": 0,
+    "max": 30,
+    "default": 0,
+    "description": "Stories-style segments (0/1 = one continuous bar)"
+   },
+   "gap": {
+    "type": "number",
+    "min": 0,
+    "max": 100,
+    "default": 8,
+    "description": "Gap between segments (design units)"
+   },
+   "track": {
+    "type": "boolean",
+    "default": true,
+    "description": "Show the faint track behind the fill"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.8,
+    "description": "Glow intensity 0-1"
+   },
+   "head": {
+    "type": "boolean",
+    "default": true,
+    "description": "Glowing head at the fill end"
+   },
+   "intro": {
+    "type": "number",
+    "min": 0,
+    "max": 5,
+    "default": 0.25,
+    "description": "Seconds for the track to fade/grow in"
+   }
+  }
+ },
+ {
+  "id": "chat-bubbles",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "Messaging thread: bubbles spring in one by one (mine on the right in the accent colour, theirs on the left with avatar + name), typing dots before their messages, the thread scrolls up as it grows, \"Delivered\" under my last message. Generic styling from the theme.",
+  "default_duration": 6,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 6,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "messages": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "from": {
+       "type": "enum",
+       "values": [
+        "them",
+        "me"
+       ],
+       "default": "them",
+       "description": "Who sends it: them (left) or me (right)"
+      },
+      "text": {
+       "type": "string",
+       "default": "",
+       "description": "Message text (emoji welcome)"
+      },
+      "name": {
+       "type": "string",
+       "default": "",
+       "description": "Sender name shown above their bubble (them)"
+      },
+      "avatar": {
+       "type": "string",
+       "default": "",
+       "description": "Sender avatar (them); empty = initials (absolute file path, path inside motion/public, URL, or empty)"
+      },
+      "at": {
+       "type": "number",
+       "min": -1,
+       "max": 600,
+       "default": -1,
+       "description": "Seconds when the message appears (-1 = automatic timing)"
+      }
+     }
+    },
+    "default": [
+     {
+      "from": "them",
+      "text": "Do you have the booking number? The hotel needs it 😅",
+      "name": "Alex",
+      "avatar": "",
+      "at": -1
+     },
+     {
+      "from": "me",
+      "text": "One sec…",
+      "name": "",
+      "avatar": "",
+      "at": -1
+     },
+     {
+      "from": "me",
+      "text": "Sent! It’s all in the app 💜",
+      "name": "",
+      "avatar": "",
+      "at": -1
+     },
+     {
+      "from": "them",
+      "text": "You’re a lifesaver ❤️",
+      "name": "Alex",
+      "avatar": "",
+      "at": -1
+     }
+    ],
+    "description": "Messages in order: [{from: them|me, text, name?, avatar?, at?}]"
+   },
+   "header": {
+    "type": "string",
+    "default": "",
+    "description": "Optional contact name shown as a chat header at the top (empty = none)"
+   },
+   "headerAvatar": {
+    "type": "string",
+    "default": "",
+    "description": "Header avatar image (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "typing": {
+    "type": "boolean",
+    "default": true,
+    "description": "Typing indicator before \"them\" messages"
+   },
+   "typingDuration": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.85,
+    "description": "Seconds of typing dots before each \"them\" message"
+   },
+   "gap": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.55,
+    "description": "Pause after each message (automatic timing)"
+   },
+   "size": {
+    "type": "number",
+    "min": 10,
+    "max": 120,
+    "default": 52,
+    "description": "Message text size (design units)"
+   },
+   "columnWidth": {
+    "type": "number",
+    "min": 0.3,
+    "max": 1,
+    "default": 0.88,
+    "description": "Chat column width as a fraction of the frame width (portrait)"
+   },
+   "areaHeight": {
+    "type": "number",
+    "min": 0.1,
+    "max": 1,
+    "default": 0.6,
+    "description": "Max chat area height as a fraction of the frame height (the thread grows from the centre, then scrolls)"
+   },
+   "meColor": {
+    "type": "string",
+    "default": "",
+    "description": "My bubble colour (empty = theme.accent)"
+   },
+   "themColor": {
+    "type": "string",
+    "default": "",
+    "description": "Their bubble colour (empty = a lifted theme.bg)"
+   },
+   "delivered": {
+    "type": "boolean",
+    "default": true,
+    "description": "\"Delivered\" under my last message"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.47,
+    "description": "Vertical centre of the chat area (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "voice-note",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "Voice-note bubble: play button flips to pause, waveform fills in the accent colour as it plays (bars near the playhead dance), elapsed time counts, transcript words light up in sync; then a reply bubble springs in and types itself.",
+  "default_duration": 5.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 5.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "from": {
+    "type": "enum",
+    "values": [
+     "them",
+     "me"
+    ],
+    "default": "them",
+    "description": "Who sent the voice note"
+   },
+   "name": {
+    "type": "string",
+    "default": "Alex",
+    "description": "Sender name (them)"
+   },
+   "avatar": {
+    "type": "string",
+    "default": "",
+    "description": "Sender avatar; empty = initials (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "noteLength": {
+    "type": "number",
+    "min": 1,
+    "max": 3600,
+    "default": 14,
+    "description": "Displayed length of the voice note in seconds"
+   },
+   "transcript": {
+    "type": "string",
+    "default": "Can you find the hotel’s number? I think it was in that email…",
+    "description": "Transcript under the waveform (empty = none); words light up as it plays"
+   },
+   "reply": {
+    "type": "string",
+    "default": "Found it, sending now 👍",
+    "description": "Reply bubble that types in afterwards (empty = none)"
+   },
+   "playAt": {
+    "type": "number",
+    "min": 0,
+    "max": 60,
+    "default": 0.7,
+    "description": "Seconds until playback starts"
+   },
+   "playDuration": {
+    "type": "number",
+    "min": 0.2,
+    "max": 60,
+    "default": 2.6,
+    "description": "Seconds the visible playback takes"
+   },
+   "bars": {
+    "type": "integer",
+    "min": 8,
+    "max": 120,
+    "default": 38,
+    "description": "Waveform bars"
+   },
+   "size": {
+    "type": "number",
+    "min": 10,
+    "max": 120,
+    "default": 50,
+    "description": "Text size (design units)"
+   },
+   "columnWidth": {
+    "type": "number",
+    "min": 0.3,
+    "max": 1,
+    "default": 0.88,
+    "description": "Column width as a fraction of the frame width"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "notification-stack",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "Lock-screen style: optional big clock + date, then notification cards (icon, app, time, title, 2-line body) drop in from above on springs; the newest lands on top and pushes older ones down (they collapse into a pile after three). Dark or light glass.",
+  "default_duration": 4.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "notifications": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "app": {
+       "type": "string",
+       "default": "App",
+       "description": "App name (small caps header)"
+      },
+      "title": {
+       "type": "string",
+       "default": "",
+       "description": "Bold title line"
+      },
+      "body": {
+       "type": "string",
+       "default": "",
+       "description": "Body text (2 lines max)"
+      },
+      "time": {
+       "type": "string",
+       "default": "now",
+       "description": "Time label, e.g. \"now\", \"5m ago\""
+      },
+      "icon": {
+       "type": "string",
+       "default": "",
+       "description": "App icon image or a single emoji; empty = letter tile (absolute file path, path inside motion/public, URL, or empty)"
+      }
+     }
+    },
+    "default": [
+     {
+      "app": "Calendar",
+      "title": "Check in for your flight",
+      "body": "Online check-in is open · LIS 9:40 AM",
+      "time": "9:12 AM",
+      "icon": "✈️"
+     },
+     {
+      "app": "Messages",
+      "title": "Alex",
+      "body": "Did you book the hotel? Prices go up tonight",
+      "time": "9:30 AM",
+      "icon": "💬"
+     },
+     {
+      "app": "Your App",
+      "title": "Lisbon · Flight tomorrow",
+      "body": "Tue 9:40 AM · boarding pass and hotel attached",
+      "time": "now",
+      "icon": ""
+     }
+    ],
+    "description": "Notifications in arrival order (newest lands on top): [{app, title, body, time, icon}]"
+   },
+   "clock": {
+    "type": "boolean",
+    "default": true,
+    "description": "Big lock-screen clock and date above the stack"
+   },
+   "time": {
+    "type": "string",
+    "default": "8:30",
+    "description": "Clock text"
+   },
+   "date": {
+    "type": "string",
+    "default": "Tuesday, September 23",
+    "description": "Date line above the clock"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0.1,
+    "max": 10,
+    "default": 0.75,
+    "description": "Seconds between notifications"
+   },
+   "start": {
+    "type": "number",
+    "min": 0,
+    "max": 30,
+    "default": 0.5,
+    "description": "Seconds until the first notification"
+   },
+   "glassTone": {
+    "type": "enum",
+    "values": [
+     "dark",
+     "light"
+    ],
+    "default": "dark",
+    "description": "Card style: dark glass or light frosted"
+   },
+   "size": {
+    "type": "number",
+    "min": 10,
+    "max": 100,
+    "default": 34,
+    "description": "Body text size (design units)"
+   },
+   "cardWidth": {
+    "type": "number",
+    "min": 0.3,
+    "max": 1,
+    "default": 0.92,
+    "description": "Card width as a fraction of the frame width (portrait)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.2,
+    "description": "Top of the clock (or first card) as a fraction of the frame height"
+   }
+  }
+ },
+ {
+  "id": "checklist-grid",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "Title words rise in, then numbered frosted-glass cards flip up into a 2x2 (or N) grid one by one; a check mark draws itself on each (ring, fill, tick) with an accent glow; a light sweep crosses the finished grid.",
+  "default_duration": 4.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "title": {
+    "type": "string",
+    "default": "Everything for **the trip**,\nin one place",
+    "description": "Title above the grid (**accent**, *italic*, \\n); empty = none"
+   },
+   "items": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "Passports",
+     "Flights",
+     "Hotels",
+     "Car rental"
+    ],
+    "description": "Card labels (2-8 read best)"
+   },
+   "columns": {
+    "type": "integer",
+    "min": 0,
+    "max": 6,
+    "default": 0,
+    "description": "Columns (0 = auto: 2 on portrait/square, up to 4 on landscape)"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0.02,
+    "max": 5,
+    "default": 0.32,
+    "description": "Seconds between cards"
+   },
+   "numbered": {
+    "type": "boolean",
+    "default": true,
+    "description": "Number badge on each card"
+   },
+   "check": {
+    "type": "boolean",
+    "default": true,
+    "description": "Check mark draws on each card after it appears"
+   },
+   "size": {
+    "type": "number",
+    "min": 10,
+    "max": 150,
+    "default": 46,
+    "description": "Card label size (design units)"
+   },
+   "titleSize": {
+    "type": "number",
+    "min": 10,
+    "max": 250,
+    "default": 78,
+    "description": "Title size (design units)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "comment-reply",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "\"Replying to @username\" comment sticker: white card with avatar, reply arrow, @username and the comment text pops in with a bouncy spring and tilt, then gently floats. Generic styling (not a platform imitation).",
+  "default_duration": 3,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "username": {
+    "type": "string",
+    "default": "weekend.traveler",
+    "description": "Commenter username (without @)"
+   },
+   "text": {
+    "type": "string",
+    "default": "How do you keep track of all your bookings??",
+    "description": "The comment being replied to"
+   },
+   "avatar": {
+    "type": "string",
+    "default": "",
+    "description": "Commenter avatar; empty = initials (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "label": {
+    "type": "string",
+    "default": "Replying to",
+    "description": "Header text before @username"
+   },
+   "cardColor": {
+    "type": "color",
+    "default": "#FFFFFF",
+    "description": "Card colour"
+   },
+   "inkColor": {
+    "type": "color",
+    "default": "#16121C",
+    "description": "Comment text colour"
+   },
+   "size": {
+    "type": "number",
+    "min": 10,
+    "max": 120,
+    "default": 44,
+    "description": "Comment text size (design units)"
+   },
+   "maxWidth": {
+    "type": "number",
+    "min": 0.3,
+    "max": 1,
+    "default": 0.8,
+    "description": "Max card width as a fraction of the frame width"
+   },
+   "tilt": {
+    "type": "number",
+    "min": -20,
+    "max": 20,
+    "default": -2,
+    "description": "Resting tilt in degrees"
+   },
+   "x": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Horizontal centre (fraction of width)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.3,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "calendar-week",
+  "category": "ui",
+  "kind": "overlay",
+  "description": "Frosted weekly calendar panel (title, day header with today highlighted, hour grid, red \"now\" line) where event blocks drop into their day one by one with a bouncy landing.",
+  "default_duration": 4.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "title": {
+    "type": "string",
+    "default": "September",
+    "description": "Panel title (e.g. month)"
+   },
+   "subtitle": {
+    "type": "string",
+    "default": "Sep 22 – 28",
+    "description": "Subtitle (e.g. week range)"
+   },
+   "days": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "Mon",
+     "Tue",
+     "Wed",
+     "Thu",
+     "Fri",
+     "Sat",
+     "Sun"
+    ],
+    "description": "7 day labels"
+   },
+   "startDate": {
+    "type": "integer",
+    "min": 0,
+    "max": 31,
+    "default": 22,
+    "description": "Date number of the first day (0 = hide date numbers)"
+   },
+   "today": {
+    "type": "integer",
+    "min": -1,
+    "max": 6,
+    "default": 1,
+    "description": "Highlighted day index (-1 = none)"
+   },
+   "startHour": {
+    "type": "number",
+    "min": 0,
+    "max": 23,
+    "default": 8,
+    "description": "First hour shown"
+   },
+   "endHour": {
+    "type": "number",
+    "min": 1,
+    "max": 24,
+    "default": 18,
+    "description": "Last hour shown"
+   },
+   "now": {
+    "type": "number",
+    "min": -1,
+    "max": 24,
+    "default": 11.4,
+    "description": "Hour of the \"now\" line on today (-1 = none)"
+   },
+   "events": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "day": {
+       "type": "integer",
+       "min": 0,
+       "max": 6,
+       "default": 0,
+       "description": "Day column 0-6 (0 = first day)"
+      },
+      "start": {
+       "type": "number",
+       "min": 0,
+       "max": 24,
+       "default": 9,
+       "description": "Start hour (decimal, e.g. 9.5 = 9:30)"
+      },
+      "end": {
+       "type": "number",
+       "min": 0,
+       "max": 24,
+       "default": 10,
+       "description": "End hour (decimal)"
+      },
+      "title": {
+       "type": "string",
+       "default": "Event",
+       "description": "Event title"
+      },
+      "color": {
+       "type": "string",
+       "default": "",
+       "description": "Block colour (hex); empty = cycles accent / accent2 / glow"
+      }
+     }
+    },
+    "default": [
+     {
+      "day": 0,
+      "start": 9,
+      "end": 10.5,
+      "title": "Flight · LIS",
+      "color": ""
+     },
+     {
+      "day": 1,
+      "start": 13,
+      "end": 14.5,
+      "title": "Hotel check-in",
+      "color": ""
+     },
+     {
+      "day": 2,
+      "start": 10,
+      "end": 12,
+      "title": "Museum tour",
+      "color": ""
+     },
+     {
+      "day": 3,
+      "start": 15,
+      "end": 16.5,
+      "title": "Car pickup",
+      "color": ""
+     },
+     {
+      "day": 4,
+      "start": 11,
+      "end": 12,
+      "title": "Team call",
+      "color": ""
+     },
+     {
+      "day": 5,
+      "start": 9.5,
+      "end": 11,
+      "title": "Beach day",
+      "color": ""
+     }
+    ],
+    "description": "Event blocks that drop into their day: [{day, start, end, title, color?}]"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0.02,
+    "max": 5,
+    "default": 0.3,
+    "description": "Seconds between event drops"
+   },
+   "panelWidth": {
+    "type": "number",
+    "min": 0.3,
+    "max": 1,
+    "default": 0.94,
+    "description": "Panel width as a fraction of the frame width (portrait)"
+   },
+   "panelHeight": {
+    "type": "number",
+    "min": 0.2,
+    "max": 1,
+    "default": 0.62,
+    "description": "Panel height as a fraction of the frame height (portrait)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "flow-path",
+  "category": "diagram",
+  "kind": "overlay",
+  "description": "A glowing gradient wave draws left to right over a faint dashed track with a bright comet head; milestone nodes pop (with a ping) as the line reaches them and their labels rise in, alternating above/below.",
+  "default_duration": 4,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "nodes": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "Step",
+       "description": "Milestone label"
+      },
+      "sub": {
+       "type": "string",
+       "default": "",
+       "description": "Small line under the label (optional)"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "Add a trip",
+      "sub": "10 sec"
+     },
+     {
+      "label": "Snap the ticket",
+      "sub": "auto-filed"
+     },
+     {
+      "label": "Find it later",
+      "sub": "one search"
+     },
+     {
+      "label": "Share with friends",
+      "sub": "everyone synced"
+     }
+    ],
+    "description": "Milestones along the path: [{label, sub?}] (2-6)"
+   },
+   "title": {
+    "type": "string",
+    "default": "",
+    "description": "Optional title above the path (**accent** markup)"
+   },
+   "amplitude": {
+    "type": "number",
+    "min": 0,
+    "max": 800,
+    "default": 120,
+    "description": "Wave height (design units)"
+   },
+   "waves": {
+    "type": "number",
+    "min": 0,
+    "max": 6,
+    "default": 1.25,
+    "description": "Number of wave periods across the frame"
+   },
+   "drawDuration": {
+    "type": "number",
+    "min": 0.2,
+    "max": 30,
+    "default": 2.4,
+    "description": "Seconds for the line to draw across"
+   },
+   "start": {
+    "type": "number",
+    "min": 0,
+    "max": 30,
+    "default": 0.25,
+    "description": "Seconds before the line starts drawing"
+   },
+   "margin": {
+    "type": "number",
+    "min": 0,
+    "max": 0.4,
+    "default": 0.08,
+    "description": "Left/right margin (fraction of width)"
+   },
+   "labelSize": {
+    "type": "number",
+    "min": 10,
+    "max": 150,
+    "default": 38,
+    "description": "Label size (design units)"
+   },
+   "glow": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.8,
+    "description": "Glow intensity 0-1"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.52,
+    "description": "Vertical centre of the path (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "hub-beams",
+  "category": "diagram",
+  "kind": "overlay",
+  "description": "Source pills (emoji + label) slide in on the left, curved beams draw into a central hub card (logo, rotating gradient border, breathing glow) and bright pulses keep flowing along the beams into it; the hub bumps as pulses arrive.",
+  "default_duration": 4,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "items": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "Item",
+       "description": "Source label"
+      },
+      "icon": {
+       "type": "string",
+       "default": "✨",
+       "description": "Emoji (or leave empty)"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "Photos",
+      "icon": "📷"
+     },
+     {
+      "label": "Emails",
+      "icon": "✉️"
+     },
+     {
+      "label": "Notes",
+      "icon": "📝"
+     },
+     {
+      "label": "Files",
+      "icon": "📁"
+     }
+    ],
+    "description": "Sources on the left: [{label, icon}] (2-6)"
+   },
+   "hubLabel": {
+    "type": "string",
+    "default": "Your App",
+    "description": "Label under the hub"
+   },
+   "hubLogo": {
+    "type": "string",
+    "default": "",
+    "description": "Hub logo image; empty = monogram (absolute file path, path inside motion/public, URL, or empty)"
+   },
+   "speed": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 1,
+    "description": "Pulse speed multiplier"
+   },
+   "itemSize": {
+    "type": "number",
+    "min": 10,
+    "max": 120,
+    "default": 44,
+    "description": "Item label size (design units)"
+   },
+   "hubSize": {
+    "type": "number",
+    "min": 60,
+    "max": 700,
+    "default": 270,
+    "description": "Hub size (design units)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.5,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "bar-chart",
+  "category": "data",
+  "kind": "overlay",
+  "description": "Bar chart: title rises in, grid draws, bars grow on staggered springs while their values count up; the highlighted bar glows in the accent gradient with its value on an accent pill.",
+  "default_duration": 3.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "data": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "",
+       "description": "Label under the bar"
+      },
+      "value": {
+       "type": "number",
+       "min": -1000000000000,
+       "max": 1000000000000,
+       "default": 0,
+       "description": "Bar value"
+      },
+      "highlight": {
+       "type": "boolean",
+       "default": false,
+       "description": "Accent this bar (gradient, glow, value pill)"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "Mon",
+      "value": 32,
+      "highlight": false
+     },
+     {
+      "label": "Tue",
+      "value": 45,
+      "highlight": false
+     },
+     {
+      "label": "Wed",
+      "value": 38,
+      "highlight": false
+     },
+     {
+      "label": "Thu",
+      "value": 61,
+      "highlight": false
+     },
+     {
+      "label": "Fri",
+      "value": 74,
+      "highlight": false
+     },
+     {
+      "label": "Sat",
+      "value": 92,
+      "highlight": true
+     }
+    ],
+    "description": "Bars: [{label, value, highlight?}] (2-12)"
+   },
+   "title": {
+    "type": "string",
+    "default": "Weekly **active** users",
+    "description": "Title above the chart (**accent**); empty = none"
+   },
+   "format": {
+    "type": "enum",
+    "values": [
+     "integer",
+     "decimal",
+     "percent",
+     "currency",
+     "time",
+     "compact"
+    ],
+    "default": "integer",
+    "description": "Value format (see stat-counter)"
+   },
+   "decimals": {
+    "type": "integer",
+    "min": -1,
+    "max": 6,
+    "default": -1,
+    "description": "Decimals; -1 = automatic from the values"
+   },
+   "prefix": {
+    "type": "string",
+    "default": "",
+    "description": "Value prefix"
+   },
+   "suffix": {
+    "type": "string",
+    "default": "",
+    "description": "Value suffix"
+   },
+   "max": {
+    "type": "number",
+    "min": 0,
+    "max": 1000000000000,
+    "default": 0,
+    "description": "Axis maximum (0 = auto)"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 2,
+    "default": 0.08,
+    "description": "Seconds between bars"
+   },
+   "growDuration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 10,
+    "default": 0.9,
+    "description": "Seconds for a bar to grow"
+   },
+   "values": {
+    "type": "boolean",
+    "default": true,
+    "description": "Show value labels"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.52,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "line-chart",
+  "category": "data",
+  "kind": "overlay",
+  "description": "Line chart: smooth gradient line draws left to right with a glowing head, points pop as it passes, a gradient area fills in behind it, and a value pill + ping lands on the final point.",
+  "default_duration": 3.5,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 3.5,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "data": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "",
+       "description": "X label (optional)"
+      },
+      "value": {
+       "type": "number",
+       "min": -1000000000000,
+       "max": 1000000000000,
+       "default": 0,
+       "description": "Value"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "W1",
+      "value": 120
+     },
+     {
+      "label": "W2",
+      "value": 180
+     },
+     {
+      "label": "W3",
+      "value": 160
+     },
+     {
+      "label": "W4",
+      "value": 260
+     },
+     {
+      "label": "W5",
+      "value": 310
+     },
+     {
+      "label": "W6",
+      "value": 290
+     },
+     {
+      "label": "W7",
+      "value": 420
+     },
+     {
+      "label": "W8",
+      "value": 560
+     }
+    ],
+    "description": "Points in order: [{label, value}] (2-30)"
+   },
+   "title": {
+    "type": "string",
+    "default": "Users **joining** every week",
+    "description": "Title above the chart (**accent**); empty = none"
+   },
+   "format": {
+    "type": "enum",
+    "values": [
+     "integer",
+     "decimal",
+     "percent",
+     "currency",
+     "time",
+     "compact"
+    ],
+    "default": "integer",
+    "description": "Value format (see stat-counter)"
+   },
+   "decimals": {
+    "type": "integer",
+    "min": -1,
+    "max": 6,
+    "default": -1,
+    "description": "Decimals; -1 = automatic from the values"
+   },
+   "prefix": {
+    "type": "string",
+    "default": "",
+    "description": "Value prefix"
+   },
+   "suffix": {
+    "type": "string",
+    "default": "",
+    "description": "Value suffix"
+   },
+   "drawDuration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 30,
+    "default": 1.8,
+    "description": "Seconds for the line to draw"
+   },
+   "area": {
+    "type": "boolean",
+    "default": true,
+    "description": "Gradient area under the line"
+   },
+   "callout": {
+    "type": "boolean",
+    "default": true,
+    "description": "Value pill at the last point"
+   },
+   "labels": {
+    "type": "boolean",
+    "default": true,
+    "description": "X labels"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.52,
+    "description": "Vertical centre (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "stat-orbit",
+  "category": "data",
+  "kind": "overlay",
+  "description": "Central stat inside a gradient progress ring that fills while the number counts up; emoji/icon bubbles orbit it on a tilted 3D ellipse (passing in front of and behind the ring); label rises in below.",
+  "default_duration": 4,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 4,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": true,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0.35,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "value": {
+    "type": "number",
+    "min": -1000000000000,
+    "max": 1000000000000,
+    "default": 87,
+    "description": "The stat in the middle"
+   },
+   "from": {
+    "type": "number",
+    "min": -1000000000000,
+    "max": 1000000000000,
+    "default": 0,
+    "description": "Count-up start value"
+   },
+   "format": {
+    "type": "enum",
+    "values": [
+     "integer",
+     "decimal",
+     "percent",
+     "currency",
+     "time",
+     "compact"
+    ],
+    "default": "percent",
+    "description": "Value format (see stat-counter)"
+   },
+   "decimals": {
+    "type": "integer",
+    "min": -1,
+    "max": 6,
+    "default": -1,
+    "description": "Decimals; -1 = automatic from value"
+   },
+   "prefix": {
+    "type": "string",
+    "default": "",
+    "description": "Value prefix"
+   },
+   "suffix": {
+    "type": "string",
+    "default": "",
+    "description": "Value suffix"
+   },
+   "label": {
+    "type": "string",
+    "default": "of users found **what they needed**",
+    "description": "Label under the ring (**accent**)"
+   },
+   "progress": {
+    "type": "number",
+    "min": -1,
+    "max": 1,
+    "default": -1,
+    "description": "Ring fill 0-1 (-1 = auto: value/100 for percent, else full)"
+   },
+   "icons": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "📷",
+     "✈️",
+     "🏨",
+     "📄",
+     "🗓️"
+    ],
+    "description": "Orbiting icons: emoji or image paths"
+   },
+   "orbitSpeed": {
+    "type": "number",
+    "min": -2,
+    "max": 2,
+    "default": 0.07,
+    "description": "Orbit speed in turns per second"
+   },
+   "countDuration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 30,
+    "default": 1.6,
+    "description": "Seconds for the count and ring fill"
+   },
+   "size": {
+    "type": "number",
+    "min": 100,
+    "max": 1200,
+    "default": 470,
+    "description": "Ring diameter (design units)"
+   },
+   "y": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.46,
+    "description": "Vertical centre of the ring (fraction of height)"
+   }
+  }
+ },
+ {
+  "id": "bg-mesh",
+  "category": "background",
+  "kind": "background",
+  "description": "Soft pastel mesh gradient: large colour blobs drift slowly on Lissajous paths over a light base, with fine animated grain (no banding). Colours via props.",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "colors": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [
+     "#FFC9A8",
+     "#FF9EC4",
+     "#B8A2FF",
+     "#A8D8FF",
+     "#C2FFE0"
+    ],
+    "description": "Blob colours (3-7)"
+   },
+   "base": {
+    "type": "color",
+    "default": "#F7F2FF",
+    "description": "Base colour under the blobs"
+   },
+   "speed": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 1,
+    "description": "Drift speed multiplier"
+   },
+   "blob": {
+    "type": "number",
+    "min": 0.1,
+    "max": 2,
+    "default": 0.55,
+    "description": "Blob radius as a fraction of the larger frame side"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.06,
+    "description": "Film grain 0-1"
+   }
+  }
+ },
+ {
+  "id": "bg-space",
+  "category": "background",
+  "kind": "background",
+  "description": "Deep navy/black space with a breathing purple \"stage\" glow at the bottom, a glowing planet-horizon arc, twinkling drifting stars (a few with soft halos), vignette and grain - the premium SaaS launch backdrop.",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "base": {
+    "type": "color",
+    "default": "#05030C",
+    "description": "Deep space base colour"
+   },
+   "glowColor": {
+    "type": "string",
+    "default": "",
+    "description": "Stage glow colour (empty = theme.glow)"
+   },
+   "stars": {
+    "type": "integer",
+    "min": 0,
+    "max": 2000,
+    "default": 170,
+    "description": "Number of stars"
+   },
+   "arc": {
+    "type": "boolean",
+    "default": true,
+    "description": "Glowing planet-horizon arc at the bottom"
+   },
+   "drift": {
+    "type": "number",
+    "min": 0,
+    "max": 20,
+    "default": 1,
+    "description": "Star drift speed multiplier"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.05,
+    "description": "Film grain 0-1"
+   }
+  }
+ },
+ {
+  "id": "bg-rays",
+  "category": "background",
+  "kind": "background",
+  "description": "Rotating starburst: two counter-rotating soft ray layers (conic gradients) radiating from a glowing centre, faded at the core and edges, with vignette and grain.",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "color": {
+    "type": "string",
+    "default": "",
+    "description": "Ray colour (empty = theme.accent2)"
+   },
+   "base": {
+    "type": "string",
+    "default": "",
+    "description": "Base colour (empty = theme.bg)"
+   },
+   "rays": {
+    "type": "integer",
+    "min": 3,
+    "max": 90,
+    "default": 16,
+    "description": "Number of rays"
+   },
+   "speed": {
+    "type": "number",
+    "min": -360,
+    "max": 360,
+    "default": 6,
+    "description": "Rotation speed in degrees per second"
+   },
+   "center": {
+    "type": "array",
+    "items": [
+     {
+      "type": "number"
+     },
+     {
+      "type": "number"
+     }
+    ],
+    "length": 2,
+    "default": [
+     0.5,
+     0.42
+    ],
+    "description": "Ray centre [x, y] as fractions of the frame"
+   },
+   "intensity": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.35,
+    "description": "Ray opacity 0-1"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.05,
+    "description": "Film grain 0-1"
+   }
+  }
+ },
+ {
+  "id": "bg-grid",
+  "category": "background",
+  "kind": "background",
+  "description": "Glowing grid: a 3D perspective floor grid gliding toward the viewer under a bright horizon line (style=perspective), or a drifting dot grid lit by a wandering spotlight (style=dots).",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "style": {
+    "type": "enum",
+    "values": [
+     "perspective",
+     "dots"
+    ],
+    "default": "perspective",
+    "description": "perspective = 3D floor grid flying forward; dots = drifting dot grid with a moving spotlight"
+   },
+   "color": {
+    "type": "string",
+    "default": "",
+    "description": "Line/dot colour (empty = theme.accent)"
+   },
+   "base": {
+    "type": "string",
+    "default": "",
+    "description": "Base colour (empty = theme.bg)"
+   },
+   "cell": {
+    "type": "number",
+    "min": 20,
+    "max": 600,
+    "default": 64,
+    "description": "Grid cell size (design units)"
+   },
+   "speed": {
+    "type": "number",
+    "min": 0,
+    "max": 20,
+    "default": 1,
+    "description": "Motion speed multiplier"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.04,
+    "description": "Film grain 0-1"
+   }
+  }
+ },
+ {
+  "id": "bg-liquid",
+  "category": "background",
+  "kind": "background",
+  "description": "Liquid topography: glowing contour lines of a slowly flowing, domain-warped noise field (marching squares on canvas), coloured along a gradient from accent2 to accent.",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "colors": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    },
+    "default": [],
+    "description": "Two or more line colours (empty = theme.accent2 -> theme.accent)"
+   },
+   "base": {
+    "type": "string",
+    "default": "",
+    "description": "Base colour (empty = theme.bg)"
+   },
+   "lines": {
+    "type": "integer",
+    "min": 2,
+    "max": 60,
+    "default": 14,
+    "description": "Number of contour levels"
+   },
+   "scale": {
+    "type": "number",
+    "min": 0.2,
+    "max": 5,
+    "default": 1,
+    "description": "Pattern scale (bigger = larger shapes)"
+   },
+   "speed": {
+    "type": "number",
+    "min": 0,
+    "max": 20,
+    "default": 1,
+    "description": "Flow speed multiplier"
+   },
+   "thickness": {
+    "type": "number",
+    "min": 0.5,
+    "max": 20,
+    "default": 2.2,
+    "description": "Line thickness (design units)"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.04,
+    "description": "Film grain 0-1"
+   }
+  }
+ },
+ {
+  "id": "bg-paper",
+  "category": "background",
+  "kind": "background",
+  "description": "Warm paper: procedural mottled paper texture with fibres, a slowly drifting soft light, vignette and animated multiply grain - for editorial looks (pair with dark text / the italic serif).",
+  "default_duration": 8,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 8,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "paper": {
+    "type": "color",
+    "default": "#F2EADF",
+    "description": "Paper colour"
+   },
+   "grain": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.12,
+    "description": "Film grain 0-1"
+   },
+   "fibers": {
+    "type": "boolean",
+    "default": true,
+    "description": "Visible paper fibres"
+   },
+   "vignette": {
+    "type": "number",
+    "min": 0,
+    "max": 1,
+    "default": 0.3,
+    "description": "Edge darkening 0-1"
+   }
+  }
+ }
+]

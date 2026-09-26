@@ -1,0 +1,26 @@
+# __NAME__ — created __DATE__ from template "day-in-life" (timestamped shots 1.5-3 s; the app at 2-3 real moments)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: lofi
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  text_style: typewriter
+  text_pos: ["50%", "12%"]
+timeline:
+  - section: t0715
+    text: "7:15 am · check-in opens"
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 2.4, layout: iphone}
+  - section: t1230
+    text: "12:30 pm · gate change"
+    clips:
+      - {src: __CLIP2__, in: 0.0, dur: 2.4, layout: iphone}
+  - section: t1840
+    text: "6:40 pm · the hotel asks"
+    clips:
+      - {src: __CLIP3__, in: 0.0, dur: 2.6, layout: iphone}
+audio:
+  music: {generate: {bpm: 86, key: A, drop: 0.3}, volume: -8}

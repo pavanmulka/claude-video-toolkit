@@ -1,0 +1,23 @@
+# __NAME__ — created __DATE__ from template "before-after" (split screen: same task, two ways, with timers; 12-20 s)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+timeline:
+  - section: split
+    text: {content: "Finding the booking number", style: native_pill, pos: ["50%", "12%"]}
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {color: transparent, dur: 12.0}
+    overlays:
+      - {video: __CLIP2__, in: 0.0, speed: 1.0, layout: {type: iphone, width: 420, pos: ["27%", "52%"]}, anim: {in: slide_up, dur: 0.5}}
+      - {video: __CLIP1__, in: 0.0, speed: 1.0, layout: {type: iphone, width: 420, pos: ["73%", "52%"]}, start: 0.2, anim: {in: slide_up, dur: 0.5}}
+      - {text: "the old way", style: mark_label, pos: ["27%", "86%"], start: 0.5, anim: pop}
+      - {text: "our app", style: mark_label, pos: ["73%", "86%"], start: 0.6, anim: pop}
+      - {counter: {from: 0, to: 227, format: time, dur: 11}, style: timer, pos: ["27%", "22%"], anim: pop}
+      - {counter: {from: 0, to: 9, format: time, dur: 9}, style: timer, pos: ["73%", "22%"], anim: pop}
+audio:
+  music: {generate: {bpm: 110, key: E, drop: 0.5}, volume: -7}

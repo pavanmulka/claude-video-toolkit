@@ -1,0 +1,12 @@
+# Core toolkit dependencies (Python 3.11 venv: ./setup.sh)
+numpy<2.3
+Pillow>=10.4
+PyYAML>=6.0
+fonttools>=4.50
+pysrt>=1.1
+pyloudnorm>=0.1.1
+librosa>=0.10.2
+faster-whisper>=1.1
+scenedetect[opencv]>=0.6.4
+opencv-python>=4.9
+yt-dlp[default]>=2025.1   # ./vtk learn: TikTok / YouTube / Instagram downloads (+ yt-dlp-ejs; YouTube uses Node or Deno)

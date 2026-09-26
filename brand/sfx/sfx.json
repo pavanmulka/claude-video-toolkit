@@ -1,0 +1,117 @@
+{
+ "tap": {
+  "file": "tap.wav",
+  "peak": 0.0,
+  "dur": 0.06
+ },
+ "tap_soft": {
+  "file": "tap_soft.wav",
+  "peak": 0.0,
+  "dur": 0.06
+ },
+ "pop": {
+  "file": "pop.wav",
+  "peak": 0.0,
+  "dur": 0.12
+ },
+ "whoosh": {
+  "file": "whoosh.wav",
+  "peak": 0.62,
+  "dur": 0.8
+ },
+ "swish": {
+  "file": "swish.wav",
+  "peak": 0.25,
+  "dur": 0.35
+ },
+ "riser": {
+  "file": "riser.wav",
+  "peak": 1.86,
+  "dur": 1.9
+ },
+ "impact": {
+  "file": "impact.wav",
+  "peak": 0.0,
+  "dur": 1.2
+ },
+ "chime": {
+  "file": "chime.wav",
+  "peak": 0.03,
+  "dur": 2.4
+ },
+ "chime_soft": {
+  "file": "chime_soft.wav",
+  "peak": 0.0,
+  "dur": 1.6
+ },
+ "click": {
+  "file": "click.wav",
+  "peak": 0.0,
+  "dur": 0.035
+ },
+ "ding": {
+  "file": "ding.wav",
+  "peak": 0.0,
+  "dur": 0.9
+ },
+ "notify": {
+  "file": "notify.wav",
+  "peak": 0.0,
+  "dur": 0.7
+ },
+ "typing": {
+  "file": "typing.wav",
+  "peak": 0.0,
+  "dur": 1.2
+ },
+ "shutter": {
+  "file": "shutter.wav",
+  "peak": 0.0,
+  "dur": 0.25
+ },
+ "glitch": {
+  "file": "glitch.wav",
+  "peak": 0.05,
+  "dur": 0.32
+ },
+ "boom": {
+  "file": "boom.wav",
+  "peak": 0.0,
+  "dur": 1.6
+ },
+ "sparkle": {
+  "file": "sparkle.wav",
+  "peak": 0.05,
+  "dur": 0.9
+ },
+ "bubble": {
+  "file": "bubble.wav",
+  "peak": 0.0,
+  "dur": 0.1
+ },
+ "swoosh_up": {
+  "file": "swoosh_up.wav",
+  "peak": 0.38,
+  "dur": 0.45
+ },
+ "riser_short": {
+  "file": "riser_short.wav",
+  "peak": 0.86,
+  "dur": 0.9
+ },
+ "flyby": {
+  "file": "flyby.wav",
+  "peak": 6.0,
+  "dur": 10.0
+ },
+ "cabin_chime": {
+  "file": "cabin_chime.wav",
+  "peak": 0.0,
+  "dur": 2.6
+ },
+ "cabin_hum": {
+  "file": "cabin_hum.wav",
+  "peak": 0.0,
+  "dur": 12.0
+ }
+}

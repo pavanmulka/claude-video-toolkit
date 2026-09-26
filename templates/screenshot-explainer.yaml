@@ -1,0 +1,24 @@
+# __NAME__ — created __DATE__ from template "screenshot-explainer" (real screen full-bleed + big callout card + marks, 15-30 s)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+timeline:
+  - section: screen
+    text: none
+    clips:
+      - src: __CLIP1__
+        in: 0.0
+        dur: 1.0
+        hold: 8.0
+        layout: {type: iphone, style: full, height: "74%", center_y: "58%"}
+        marks:
+          - {type: brackets, rect: [60, 480, 1200, 340], at: 0.8, draw: 0.4}
+          - {type: circle, rect: [80, 1900, 320, 90], at: 3.5, draw: 0.5, label: "all in one place", label_side: bottom}
+    overlays:
+      - {text: "Everything about the trip\n**in one space**", style: glass_card, pos: ["50%", "11%"], start: 0.2, anim: {in: pop, dur: 0.45}}
+audio:
+  music: {generate: {bpm: 100, key: C, drop: 0.5}, volume: -7}

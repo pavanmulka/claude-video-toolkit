@@ -1,0 +1,41 @@
+# __NAME__ — created __DATE__ from template "problem-payoff" (chaos -> hard cut -> calm, e.g. "same call, different ending")
+# Beats: 0-2 s recognisable problem moment (frame 1 = cover) · 2-10 s escalating search, ~1-1.5 s per shot, hand-held energy ·
+# hard cut + half a second of quiet · 4-6 s calm product proof at 1x (taps land on words) · 1-1.5 s end card. Hard cuts by default.
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  layout: iphone
+  text_style: native_pill
+timeline:
+  - section: hook                     # the ask everyone recognises; hook text at full size on frame 1
+    text: {content: "When the gate agent asks\nfor your **booking number**", style: native_pill, pos: upper_third}
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 1.8}
+  - section: search                   # escalating chaos: 3-4 places, fast cuts, thoughts as text
+    text: "hold on… 😭"
+    clips:
+      - {src: __CLIP1__, in: 2.0, dur: 1.4, speed: 2.0}
+      - {src: __CLIP2__, in: 0.0, dur: 1.4, speed: 2.0, marks: [{type: scribble, rect: [300, 900, 700, 200], at: 0.5}]}
+      - {src: __CLIP3__, in: 0.0, dur: 1.4}
+    overlays:
+      - {counter: {from: 0, to: 227, format: time, dur: 4.2}, style: timer, pos: ["50%", "88%"], anim: pop}
+  - section: calm                     # hard cut: same moment, calm; real app proof at 1x
+    text: "Same question. **Different ending.**"
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 4.5, enter: {rise: 90, dur: 0.5, ease: spring_soft, scale: 0.94},
+         taps: [], marks: [], lifts: []}
+    overlays:
+      - {counter: {from: 0, to: 12, format: time, dur: 4.0}, style: timer, pos: ["50%", "88%"], anim: pop}
+  - section: end
+    text: none
+    clips:
+      - {image: __BRAND__/endcard.png, dur: 1.5, layout: fullbleed, zoom: [1.03, 1.0]}
+audio:
+  music: {generate: {bpm: 104, key: D, drop: 6.8}, volume: -8}
+  # tracks: [{file: friend_line1.mp3, at: 0.6, fx: phone}]      # other voices (e.g. a phone call) with a voice effect

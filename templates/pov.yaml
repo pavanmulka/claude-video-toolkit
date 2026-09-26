@@ -1,0 +1,31 @@
+# __NAME__ — created __DATE__ from template "pov" (POV: chaos cuts ~1 s each -> calm product flow -> relief line)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  layout: iphone
+timeline:
+  - section: hook
+    text: {content: "POV: you're the group's\n**travel agent**", style: native_pill, pos: upper_third}
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 1.2}
+      - {src: __CLIP2__, in: 0.0, dur: 1.0}
+      - {src: __CLIP3__, in: 0.0, dur: 1.0}
+  - section: calm
+    text: "until everything lived **in one trip**"
+    text_style: native_pill
+    text_anim: {by: word, effect: rise, stagger: 0.06}
+    clips:
+      - {src: __CLIP1__, in: 1.0, dur: 6.0, transition: {type: flash, dur: 0.15}}
+  - section: relief
+    text: {content: "and breathe.", style: editorial, pos: center}
+    text_anim: {by: word, effect: blur, stagger: 0.12, in: 0.5}
+    clips:
+      - {color: transparent, dur: 2.2}
+audio:
+  music: {generate: {bpm: 96, key: A, drop: 3.2}, volume: -7}

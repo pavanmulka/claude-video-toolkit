@@ -1,0 +1,9 @@
+# dependencies and caches
+node_modules/
+.bundle-cache/
+# render output (studio / CLI)
+out/
+# generated at render time by render.mjs (copied from brand/fonts and from absolute-path props)
+public/_assets/
+public/fonts/
+.DS_Store

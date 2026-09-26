@@ -1,0 +1,37 @@
+# __NAME__ — created __DATE__ from template "listicle" (numbered list: hook, 3 items x 4-5 s, question to the viewer)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+defaults:
+  layout: iphone
+  text_style: step_pill
+  text_anim: {by: word, effect: rise, stagger: 0.06}
+timeline:
+  - section: hook
+    text: {content: "3 things every trip\nneeds **in one place**", style: clean_title, pos: upper_third}
+    text_anim: {in: 0, pop: 0}
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 2.2}
+  - section: item1
+    text: "**1** Passports"
+    clips:
+      - {src: __CLIP1__, in: 2.0, dur: 4.2, transition: {type: whip, dir: left}}
+  - section: item2
+    text: "**2** Tickets"
+    clips:
+      - {src: __CLIP2__, in: 0.0, dur: 4.2}
+  - section: item3
+    text: "**3** Hotel & car"
+    clips:
+      - {src: __CLIP3__, in: 0.0, dur: 4.2}
+  - section: ask
+    text: {content: "What would you add? 👇", style: sticker, pos: center}
+    text_anim: {effect: stamp, in: 0.3}
+    clips:
+      - {color: transparent, dur: 2.0}
+audio:
+  music: {generate: {bpm: 118, key: F, drop: 2.2}, volume: -6}

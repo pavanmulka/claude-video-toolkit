@@ -1,0 +1,235 @@
+# Default brand: every other brand extends this and overrides what it needs.
+# Units: sizes/positions are design pixels for a 1080-wide 9:16 frame (scaled automatically for
+# other aspects), or "NN%" of the output width/height.
+name: default
+
+colors:
+  text: "#FFFFFF"
+  accent: "#FFD84D"
+  accent_dark: "#8A6500"     # accent that stays readable on light backgrounds (light themes use it for text)
+  dark: "#0E0E12"
+  shadow: "#08060C"
+  tint: "#0E0A16"
+
+fonts:                      # named fonts used by the styles below (family from brand/fonts or system)
+  display: {family: TikTok Sans, weight: 800}             # TikTok's own overlay font (open source, 2025)
+  heavy: {family: TikTok Sans, weight: 900, stretch: 75}  # condensed black: tall hooks that fit 9:16
+  body: {family: TikTok Sans, weight: 600}
+
+# Market styles (2026 short-form research): TikTok Sans everywhere, condensed black hooks with a thick
+# outline, native TikTok white "pill" text, Hormozi-style caps captions (Montserrat Black + stroke +
+# one highlighted word), 2-4 words per caption chunk, pop-in on each chunk.
+text_styles:
+  hook:        {font: heavy, size: 178, line_height: 0.98, color: text, accent: accent, align: center, max_width: 780, case: upper,
+                stroke: {width: 10, color: "#0A0A0A"}, shadow: {blur: 18, opacity: 0.45, dy: 6, color: "#000000"}}
+  hook_anton:  {family: Anton, weight: 400, size: 150, line_height: 1.0, color: text, accent: "#FFD93D", align: center, max_width: 780,
+                case: upper, stroke: {width: 9, color: "#0A0A0A"}, shadow: {blur: 18, opacity: 0.45, dy: 6, color: "#000000"}}
+  title:       {font: heavy, stretch: 80, size: 132, line_height: 1.0, color: text, accent: accent, align: center, max_width: 940,
+                shadow: {blur: 22, opacity: 0.5, dy: 6, color: shadow}}
+  native_pill: {font: display, weight: 700, size: 68, line_height: 1.25, color: "#111111", accent: "#111111", align: center, max_width: 900,
+                box: {color: "#FFFFFF", opacity: 1.0, pad: [26, 12], radius: 22, mode: line},
+                accent_box: {color: accent, pad: [8, 0], radius: 10}, shadow: {blur: 12, opacity: 0.3, dy: 4, color: "#000000"}}
+  caption_top: {extends: native_pill}
+  step_pill:   {extends: native_pill, accent_box: {color: accent, pad: [16, 3], radius: 24}}   # "**1** Add Mom" numbered steps
+  caps_stroke: {family: Montserrat, weight: 900, size: 70, case: upper, color: text, accent: "#FFD93D", align: center, max_width: 900,
+                stroke: {width: 7, color: "#0A0A0A"}, shadow: {blur: 10, opacity: 0.4, dy: 4, color: "#000000"}}
+  body:        {font: body, size: 52, line_height: 1.2, color: text, accent: accent, align: center, max_width: 900,
+                shadow: {blur: 12, opacity: 0.45, dy: 4, color: shadow}}
+  cta:         {font: body, size: 50, line_height: 1.25, color: text, accent: accent, align: center, max_width: 940,
+                shadow: {blur: 14, opacity: 0.43, dy: 4, color: shadow}}
+  cta_accent:  {font: display, size: 56, line_height: 1.3, color: "#0B0B10", accent: "#0B0B10", align: center, max_width: 940,
+                accent_box: {color: accent, pad: [26, 10], radius: 32}, shadow: {blur: 14, opacity: 0.35, dy: 5, color: "#000000"}}
+  label:       {font: body, size: 40, color: text, align: center, max_width: 900,
+                box: {color: dark, opacity: 0.6, pad: [26, 14], radius: 22}}
+  # ---- motion-graphics styles (2026): word-by-word kinetic text, editorial serif, neon, outline, glass cards
+  kinetic:     {font: heavy, size: 150, line_height: 0.98, color: text, accent: accent, align: center, max_width: 860, case: upper,
+                stroke: {width: 8, color: "#0A0A0A"}, shadow: {blur: 16, opacity: 0.45, dy: 6, color: "#000000"}}
+  clean_title: {font: display, weight: 800, size: 96, line_height: 1.04, color: text, accent: accent, align: center, max_width: 900,
+                shadow: {blur: 18, opacity: 0.4, dy: 5, color: "#000000"}}
+  editorial:   {family: TikTok Sans, weight: 600, size: 92, line_height: 1.08, color: text, accent: accent, align: center, max_width: 920,
+                accent_font: {family: Instrument Serif, italic: true, weight: 400, size: 1.18},
+                accent_mark: {type: underline, delay: 0.35, draw: 0.45, width: 6, hand: true}}
+  neon:        {font: display, weight: 800, size: 110, line_height: 1.0, color: "#FFFFFF", accent: accent, align: center, max_width: 900,
+                glow: {color: accent, blur: 22, strength: 1.4}}
+  outline:     {font: heavy, size: 260, line_height: 0.9, color: text, align: center, max_width: 1000, fill: none,
+                stroke: {width: 4, color: text}}
+  gradient_title: {font: heavy, size: 150, line_height: 0.98, align: center, max_width: 900, case: upper, color: text,
+                   gradient: ["#FFFFFF", accent], shadow: {blur: 20, opacity: 0.4, dy: 6, color: "#000000"}}
+  highlight:   {font: display, weight: 800, size: 84, line_height: 1.12, color: text, accent: "#111111", align: center, max_width: 900,
+                accent_mark: {type: highlight, delay: 0.25, draw: 0.35, opacity: 0.9, color: accent},
+                shadow: {blur: 12, opacity: 0.35, dy: 4, color: "#000000"}}
+  strike:      {font: display, weight: 800, size: 96, line_height: 1.08, color: text, accent: accent, align: center, max_width: 920,
+                strike_color: "#FF3B30", shadow: {blur: 14, opacity: 0.4, dy: 5, color: "#000000"}}
+  typewriter:  {family: Space Mono, weight: 700, size: 64, line_height: 1.25, color: text, accent: accent, align: left, max_width: 900,
+                box: {color: "#0B0B10", opacity: 0.72, pad: [30, 18], radius: 18}}
+  handwritten: {family: Caveat, weight: 700, size: 92, line_height: 1.0, color: "#FFFFFF", accent: accent, align: center, max_width: 860,
+                shadow: {blur: 10, opacity: 0.5, dy: 4, color: "#000000"}}
+  word_pills:  {font: display, weight: 800, size: 74, line_height: 1.4, color: "#111111", accent: "#111111", align: center, max_width: 900,
+                box: {color: "#FFFFFF", opacity: 1.0, pad: [20, 10], radius: 18, mode: word}, accent_box: {color: accent, pad: [20, 6], radius: 18},
+                shadow: {blur: 12, opacity: 0.3, dy: 4, color: "#000000"}}
+  glass_card:  {font: display, weight: 700, size: 60, line_height: 1.2, color: "#FFFFFF", accent: accent, align: center, max_width: 820,
+                box: {mode: glass, color: "#FFFFFF", opacity: 0.14, pad: [44, 30], radius: 32, blur: 26}}
+  counter:     {font: heavy, stretch: 85, size: 230, line_height: 1.0, color: text, accent: accent, align: center, max_width: 1000,
+                shadow: {blur: 24, opacity: 0.45, dy: 8, color: "#000000"}}
+  timer:       {family: Space Mono, weight: 700, size: 150, line_height: 1.0, color: text, align: center, max_width: 1000,
+                shadow: {blur: 18, opacity: 0.45, dy: 6, color: "#000000"}}
+  mark_label:  {font: display, weight: 700, size: 42, line_height: 1.2, color: "#111111", align: center, max_width: 700,
+                box: {color: "#FFFFFF", opacity: 1.0, pad: [22, 10], radius: 18}, shadow: {blur: 12, opacity: 0.3, dy: 4, color: "#000000"}}
+  sticker:     {font: heavy, size: 88, line_height: 1.0, color: "#111111", accent: "#111111", align: center, max_width: 760, case: upper,
+                box: {color: accent, opacity: 1.0, pad: [30, 16], radius: 20}, shadow: {blur: 14, opacity: 0.4, dy: 6, color: "#000000"}}
+
+caption_styles:             # auto-captions from the voice-over (all pop in chunk by chunk)
+  tiktok_native:            # black on white pills, current word on an accent chip
+    text: {font: display, weight: 700, size: 64, line_height: 1.25, color: "#111111", max_width: 880,
+           box: {color: "#FFFFFF", opacity: 1.0, pad: [24, 10], radius: 20, mode: line},
+           highlight: {color: "#111111", box: {color: accent, pad: [8, 0], radius: 10}},
+           shadow: {blur: 12, opacity: 0.3, dy: 4, color: "#000000"}}
+    max_words: 4
+    max_chars: 26
+    position: lower
+    anim: pop
+  hormozi:                  # ALL CAPS Montserrat Black, thick outline, current word yellow, 1-3 words
+    text: {family: Montserrat, weight: 900, size: 92, line_height: 1.02, color: text, case: upper, max_width: 900,
+           stroke: {width: 9, color: "#0A0A0A"}, shadow: {blur: 10, opacity: 0.45, dy: 5, color: "#000000"},
+           highlight: {color: "#FFD93D"}}
+    max_words: 3
+    max_chars: 18
+    position: lower
+    anim: pop
+  word_highlight:           # TikTok Sans bold, outline, current word in the brand accent
+    text: {font: display, size: 76, line_height: 1.08, color: text, max_width: 900,
+           stroke: {width: 6, color: "#0A0A0A"}, shadow: {blur: 14, opacity: 0.5, dy: 5, color: "#000000"}, highlight: {color: accent}}
+    max_words: 4
+    max_chars: 24
+    position: lower
+    anim: pop
+  clean:                    # 2026 default: clean sans, sentence case, soft shadow + thin outline, keyword in accent, smooth reveal
+    text: {font: display, weight: 700, size: 70, line_height: 1.1, color: text, max_width: 880,
+           stroke: {width: 3, color: "#0A0A0A"}, shadow: {blur: 16, opacity: 0.55, dy: 4, color: "#000000"}, highlight: {color: accent}}
+    max_words: 4
+    max_chars: 24
+    position: caption_2026
+    anim: slide
+  reveal:                   # words appear as they are spoken (builds the line), current word in accent
+    extends: clean
+    anim: reveal
+  bounce:                   # current word bumps up a touch as it is spoken
+    extends: clean
+    anim: bounce
+  bold_caps:                # Remotion TikTok template look: 120 px caps, heavy under-stroke, active word green
+    text: {font: display, weight: 900, size: 104, line_height: 1.0, color: text, case: upper, max_width: 900,
+           stroke: {width: 12, color: "#000000"}, shadow: {blur: 10, opacity: 0.35, dy: 4, color: "#000000"}, highlight: {color: "#39E508"}}
+    max_words: 3
+    max_chars: 18
+    position: caption_2026
+    anim: pop
+  minimal:                  # small lowercase, no box: calm explainers
+    text: {font: body, weight: 600, size: 56, line_height: 1.15, color: text, case: lower, max_width: 860,
+           shadow: {blur: 14, opacity: 0.6, dy: 3, color: "#000000"}, highlight: {color: accent}}
+    max_words: 5
+    max_chars: 30
+    position: caption_2026
+    anim: fade
+  neon_caption:
+    text: {font: display, weight: 800, size: 78, line_height: 1.05, color: "#FFFFFF", max_width: 880,
+           glow: {color: accent, blur: 16, strength: 1.2}, highlight: {color: accent}}
+    max_words: 3
+    max_chars: 20
+    position: caption_2026
+    anim: pop
+  word_boxes:               # every word on its own white pill, current word on the accent
+    text: {font: display, weight: 800, size: 66, line_height: 1.4, color: "#111111", max_width: 880,
+           box: {color: "#FFFFFF", opacity: 1.0, pad: [16, 8], radius: 14, mode: word},
+           highlight: {color: "#111111", box: {color: accent, pad: [16, 8], radius: 14}}, shadow: {blur: 10, opacity: 0.3, dy: 3, color: "#000000"}}
+    max_words: 3
+    max_chars: 22
+    position: caption_2026
+    anim: bounce
+  standard: {extends: tiktok_native}
+  bold_center: {extends: hormozi, position: center}
+
+positions:                  # named anchor points for text/images
+  caption_band: ["50%", "16.6%"]   # band above an iPhone/card layout
+  top:          ["50%", "13%"]
+  center:       ["50%", "50%"]
+  lower:        ["50%", "69%"]
+  bottom_safe:  ["50%", "74%"]
+  caption_2026: ["50%", "63%"]     # 60-65% down: where 2026 captions sit
+  upper_third:  ["50%", "30%"]
+  cover_safe:   ["50%", "40%"]     # inside the 3:4 profile-grid crop
+
+layouts:
+  iphone:                   # screen recordings inside a drawn iPhone (model auto-detected)
+    style: rise             # rise (phone rises from the bottom edge, big) | full (whole phone) | screen (rounded screen, no bezel)
+    width: "84%"            # screen width for rise/screen
+    top: "22.5%"            # screen top for rise/screen
+    height: "70%"           # device height for full
+    center_y: "57%"         # device centre for full
+    finish: black           # black | natural | white | desert | blue | silver | orange
+    island: auto            # auto (cover recorded pill + recording dot) | model | off
+    shadow: 0.5
+  card:                     # rounded content window (no device), content can pan/zoom inside
+    x: 60
+    y: 420
+    w: 960
+    h: 1460
+    radius: 50
+    status_cut: 140         # source px hidden at the top (status bar) when not zoomed
+  fullbleed: {}             # cover the whole frame (camera zoom/pan crops)
+  fit: {}                   # whole source visible, blurred background around it
+
+background: {type: blur, dim: 0.60, tint: tint}   # blurred current frame, darkened 60%; or {type: color, color: "#..."} | gradient | image
+
+text_anim: {in: 0.18, rise: 0, pop: 0.22, out: 0.0}   # default entrance of section text (fade + pop)
+
+sfx:                        # named sounds (brand/sfx is generated by ./vtk sfx)
+  tap: sfx/tap.wav
+  tap_soft: sfx/tap_soft.wav
+  pop: sfx/pop.wav
+  whoosh: sfx/whoosh.wav
+  swish: sfx/swish.wav
+  riser: sfx/riser.wav
+  chime: sfx/chime.wav
+  chime_soft: sfx/chime_soft.wav
+  impact: sfx/impact.wav
+  click: sfx/click.wav
+  ding: sfx/ding.wav
+  notify: sfx/notify.wav
+  typing: sfx/typing.wav
+  shutter: sfx/shutter.wav
+  glitch: sfx/glitch.wav
+  boom: sfx/boom.wav
+  sparkle: sfx/sparkle.wav
+  bubble: sfx/bubble.wav
+  swoosh_up: sfx/swoosh_up.wav
+  riser_short: sfx/riser_short.wav
+  flyby: sfx/flyby.wav        # 10 s plane passing low overhead, peak at 6 s (align: peak)
+  cabin_chime: sfx/cabin_chime.wav   # in-flight PA 'bing-bong'
+  cabin_hum: sfx/cabin_hum.wav       # 12 s jet-cabin hum bed (fades in/out)
+
+marks:                      # annotation defaults (circles, arrows, underlines, highlighter, brackets...)
+  color: "#FF3B30"          # classic red marker
+  width: 9
+  highlight_color: "#FFE45C"
+  highlight_opacity: 0.5
+  glow: 0
+  label_style: mark_label
+
+music: {}                   # named tracks, e.g. bed: music/my_licensed_track.mp3
+
+output:
+  loudness: -14
+
+aspects:                    # automatic adaptation when rendering other sizes (--aspect / --sizes): the whole phone
+  "1:1":                    # becomes visible, named positions move; explicit [x, y] positions in a spec stay as written
+    layouts: {iphone: {style: full, height: "78%", center_y: "58%"}}
+    positions: {caption_band: ["50%", "10%"], top: ["50%", "8%"], upper_third: ["50%", "12%"], lower: ["50%", "82%"],
+                bottom_safe: ["50%", "88%"], caption_2026: ["50%", "86%"], cover_safe: ["50%", "30%"]}
+  "4:5":
+    layouts: {iphone: {style: full, height: "80%", center_y: "57%"}}
+    positions: {caption_band: ["50%", "9%"], top: ["50%", "7%"], upper_third: ["50%", "11%"], lower: ["50%", "82%"],
+                bottom_safe: ["50%", "88%"], caption_2026: ["50%", "86%"], cover_safe: ["50%", "30%"]}
+  "16:9":                   # phone on the right, text in the left column
+    layouts: {iphone: {style: full, height: "90%", center_y: "52%", center_x: "71%"}, card: {x: 1060, y: 60, w: 760, h: 960}}
+    positions: {caption_band: ["32%", "36%"], top: ["32%", "22%"], upper_third: ["32%", "34%"], lower: ["32%", "64%"],
+                bottom_safe: ["32%", "78%"], caption_2026: ["32%", "80%"], cover_safe: ["32%", "40%"]}

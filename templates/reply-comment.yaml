@@ -1,0 +1,23 @@
+# __NAME__ — created __DATE__ from template "reply-comment" (answer a real comment; post via TikTok's native reply so the
+# sticker is real — this card is only for platforms without it. Never fake a comment.)
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: __THEME__
+output: {file: __NAME___v1.mp4, aspect: "9:16", fps: 30}
+sources:
+__SOURCES__
+timeline:
+  - section: question
+    text: none
+    clips:
+      - {src: __CLIP1__, in: 0.0, dur: 2.2, layout: iphone}
+    overlays:
+      - {motion: comment-reply, dur: 2.2, props: {username: "@real_commenter", text: "does it work for group trips too?"}}
+  - section: demo
+    text: "Yes: invite them in **10 seconds**"
+    text_style: native_pill
+    clips:
+      - {src: __CLIP1__, in: 2.0, dur: 10.0, layout: iphone}
+audio:
+  music: {generate: {bpm: 110, key: D, drop: 2.2}, volume: -7}
