@@ -131,6 +131,10 @@ research of 2026-09-24, Sept 2026 baseline (TikTok Creative Starter Pack + Codes
 - **Repost winners** a few months later with a new hook or cover: Cucumber Hack got 37M twice, What's Faster 107M then 35M. [jennyhoyos]
 - **Volume doesn't replace the scripted story**: posting daily early on taught her from every retention graph, but since
   Nov 2025 she posts ~13 Shorts a day at a median of 155–460K views; her scripted 2022–25 run had a median of 1.5M. [jennyhoyos; as7abw]
+- **Plan the week 3-2-1**: 3 topic buckets × 2 posts + 1 "chaos agent" test (7 a week). One broad bucket for reach, two
+  narrow ones for the buyer's pains (more trust per view); after 2 weeks kill a bucket whose 4 videos flopped. [92K: 1ilmgc]
+- **Own a lane (trust beats follower count)**: stack white space on topic, audience slice, delivery, format and look;
+  borrow formats from distant niches instead of cloning the leader; hold back case-study proof while small. [92K: 1ilmgc]
 
 ## Fading / avoid
 - The baseline list lives in CLAUDE.md ("Fading"): Hormozi neon captions, constant caps, glitch or flash on every cut,
@@ -142,3 +146,5 @@ research of 2026-09-24, Sept 2026 baseline (TikTok Creative Starter Pack + Codes
 - Speaker-coloured captions (a second voice in yellow under a "mom:" label); an outlined border on text boxes (tally pill).
 - Hook script check in `./vtk validate`: flag a VO hook with no contrast pivot (but/however/yet), a long first sentence,
   topic words after the first sentence, I/me/we framing, a reading grade above 5th, or no foreshadow line in the first 3 s.
+- Competitor watch list ranked by outlier score (views ÷ channel median, last 3 months, engagement ≥ 2%) → topic buckets;
+  a `bucket` field on ideas with a per-bucket views report (the 2-week kill rule). [1ilmgc]
