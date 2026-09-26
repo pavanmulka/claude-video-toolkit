@@ -11,8 +11,8 @@ Claude makes a ready-to-post TikTok, Reel or Short.
   important taps, sounds, music and a "download" screen at the end.
 - 📂 **One folder does everything.** It's called `inbox`. You put your files in, and the finished video comes back out
   there.
-- 🧾 **What goes in `inbox`.** 1–3 screen recordings from your phone. Extras if you want: a voice-over (MP3), or a
-  video whose style you like, so Claude can copy its speed (not its content).
+- 🧾 **What goes in `inbox` (only if you want).** Screen recordings from your phone, other videos or photos, a
+  voice-over (MP3), or a video whose style you like, so Claude can copy its speed (not its content).
 - 💬 **How you ask.** "Make a 20-second TikTok showing how to add a card. Files are in inbox." That's it.
 - 📝 **Claude plans first.** It shows you what happens at each second. You say "ok" or change it, then it makes the
   video. Want a fix? Say "bigger text" and you get version 2.
@@ -26,25 +26,27 @@ Claude makes a ready-to-post TikTok, Reel or Short.
 
 ```mermaid
 flowchart TD
-    A["📱 Record your phone screen"] --> B["📂 Put the files in inbox"]
-    B --> C["💬 Tell Claude what video you want"]
-    C --> D["📝 Claude shows a plan"]
+    A["Think of a video idea"] --> Q{"Have clips, photos<br/>or a voice-over?"}
+    Q -->|yes| B["Put them in the inbox folder"]
+    Q -->|no| C
+    B --> C["Tell Claude what video you want"]
+    C --> D["Claude shows a plan"]
     D -->|change it| C
-    D -->|ok!| E["🎬 Claude makes the video"]
-    E --> F["👀 Watch it: it's in inbox"]
+    D -->|ok| E["Claude makes the video"]
+    E --> F["Watch it in the inbox folder"]
     F -->|fix something| C
-    F -->|love it| G["🚀 Post it"]
-    G --> H["🧹 Empty inbox"]
+    F -->|love it| G["Post it"]
+    G --> H["Empty the inbox folder"]
     H -->|next video| A
 ```
 
 ## 📂 What your `inbox` folder looks like
 
-Before (you put these in):
+Before (you put in whatever you have, all of it is optional):
 
 ```
 inbox/
-├── add_card.mov          ← a screen recording from your phone (1 to 3 of them)
+├── add_card.mov          ← a screen recording from your phone
 ├── search.mov            ← another one
 ├── voiceover.mp3         ← optional: a voice (made in ElevenLabs, or your own)
 └── style_i_like.mp4      ← optional: a video whose speed you like
@@ -142,8 +144,8 @@ Claude fills in your private `workspace` folder: your app, your colours, your st
 
 ## 🔁 Every day
 
-1. 📱 Record your phone screen doing the thing you want to show.
-2. 📂 Open the `inbox` folder and drag your files in. (Finder → your home folder 🏠 → claude-video-toolkit → inbox)
+1. 💡 Pick an idea. Showing your app? Record your phone screen (optional).
+2. 📂 Got files? Drag them into the `inbox` folder. (Finder → your home folder 🏠 → claude-video-toolkit → inbox)
 3. 💬 Tell Claude what you want: *"New video. Files are in inbox. Show how to add a card, 20 seconds, for TikTok."*
 4. 📝 Read the plan. Say "ok" or what to change.
 5. 👀 Watch the video in `inbox`. Ask for fixes if you want ("bigger text", "cut the start").
