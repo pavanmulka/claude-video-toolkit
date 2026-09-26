@@ -61,7 +61,7 @@ inbox/
 ## 🛠️ Setup (one time, about 1 hour)
 
 **You need:** a Mac · internet · 5 GB of free space · a Claude **Pro or Max** plan (the free plan doesn't include
-Claude Code) · the GitHub invite from the owner of this repo (check your email and click **Accept**).
+Claude Code) · a free GitHub account.
 
 **How to follow the steps:** every grey box is something to copy. Paste it into Terminal and press **Enter**. Wait
 until it finishes before you paste the next box.
