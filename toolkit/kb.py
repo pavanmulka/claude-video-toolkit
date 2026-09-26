@@ -1,16 +1,19 @@
 """Trends knowledge base: learn from short videos the user shares (TikTok / YouTube / Instagram links or local
 screen recordings). Scope: video craft + app marketing.
 
-Two layers, so daily sharing never makes grooming heavier:
-    trends/library.jsonl          the archive: one full JSON record per video / channel study (grows; searched, never read whole)
-    trends/PLAYBOOK.md            the digest read before every grooming: one line per pattern, capped (PLAYBOOK_BUDGET)
-    trends/PLAYBOOK_ARCHIVE.md    retired / merged-away patterns (not read when grooming)
-    .cache/trends/<id>/           download, analysis sheets and the draft record (git-ignored; slimmed on commit to the
-                                  draft, the hook still and small JSON)
+The brain grows by distilling, not by piling up (built for thousands of sources):
+    trends/BRAIN.md               read first, always: the golden rules + which topic page to open for which job (capped)
+    trends/brain/<topic>.md       one page per topic (hooks, narration, formats...): one lesson per line, each page capped
+    trends/archive.md             retired / merged-away lessons (never read when planning)
+    trends/library.jsonl          one line per source: what it taught (lessons) or confirmed, the pages it fed; full notes
+                                  (beats, craft...) only for special sources (keep: full); searched, never read whole
+    trends/SOURCES.md             generated from the library: every source learned, newest first, one line each
+    .cache/trends/<id>/           download, analysis sheets and the draft record (git-ignored; slimmed on commit)
 
-Flow:  ./vtk learn <url|file> --note "why"  ->  Claude reads the sheets + transcript and completes the draft
-       ->  ./vtk kb commit <id>  ->  Claude folds only NEW patterns into PLAYBOOK.md.   Search: ./vtk kb search / stats / show.
-       A whole YouTube channel: ./vtk learn <channel url> (toolkit/channel.py) -> one profile record.
+Flow:  ./vtk learn <url|file> --note "why"  (a link learned before is refused: --again)  ->  Claude reads the sheets +
+       transcript, writes the NEW lessons into the brain pages (or adds proof to the lines it confirms) and fills the
+       draft (lessons / confirms / pages)  ->  ./vtk kb commit <id>.   Search: ./vtk kb search / stats / show.
+       A whole YouTube channel: ./vtk learn <channel url> (toolkit/channel.py) -> one full profile record.
 """
 import json
 import re
@@ -25,9 +28,13 @@ from .paths import CACHE, INBOX, ROOT
 
 TRENDS = ROOT / "trends"
 LIBRARY = TRENDS / "library.jsonl"
-PLAYBOOK = TRENDS / "PLAYBOOK.md"
-ARCHIVE = TRENDS / "PLAYBOOK_ARCHIVE.md"
-PLAYBOOK_BUDGET = {"lines": 150, "kb": 16}     # the digest Claude reads before every grooming stays about this small
+BRAIN = TRENDS / "BRAIN.md"
+PAGES = TRENDS / "brain"
+ARCHIVE = TRENDS / "archive.md"
+SOURCES = TRENDS / "SOURCES.md"
+# what Claude reads per job stays small: BRAIN.md always + the 2-3 pages the job needs
+BUDGET = {"brain": {"lines": 40, "kb": 6}, "page": {"lines": 80, "kb": 10}}
+SLIM_KEYS = ["id", "source", "note", "kind", "format", "relevance", "tags", "lessons", "confirms", "pages"]
 WORK = CACHE / "trends"
 MEDIA_SUFFIXES = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".m4a", ".mp3", ".wav", ".aac", ".opus", ".jpg", ".jpeg", ".png",
                   ".webp", ".gif", ".srt", ".vtt"}
@@ -144,9 +151,29 @@ def _fetch_text(url):
 
 
 def _base_draft(rid, source, note):
-    return {"id": rid, "source": source, "note": note, "kind": None, "format": None, "app": {"name": None, "category": None},
+    return {"id": rid, "source": source, "note": note, "keep": "line", "lessons": [], "confirms": [], "pages": [],
+            "kind": None, "format": None, "app": {"name": None, "category": None},
             "insights": [], "why_it_works": [], "steal": [],
             "engine": {"template": None, "theme": None, "features": [], "gaps": []}, "relevance": None, "tags": []}
+
+
+def url_key(url):
+    """A stable key for a link: the YouTube / TikTok video id, the Instagram shortcode, else the URL without query."""
+    u = str(url or "")
+    for pat in (r"(?:youtube\.com/(?:watch\?v=|shorts/|live/)|youtu\.be/)([\w-]{11})", r"tiktok\.com/.*/video/(\d+)",
+                r"instagram\.com/(?:reel|reels|p|tv)/([\w-]+)"):
+        m = re.search(pat, u)
+        if m:
+            return m.group(1)
+    return re.sub(r"[?#].*$", "", u).rstrip("/").lower() or None
+
+
+def seen(url):
+    """The library record for a link learned before (same video, any URL form), else None."""
+    k = url_key(url)
+    if not k:
+        return None
+    return next((r for r in load() if url_key(_get(r, "source.url")) == k), None)
 
 
 def learn_text(src, note=None, rid=None, text=None):
@@ -421,6 +448,22 @@ def learn_audio(src, note=None, rid=None):
 def validate(r):
     errs = []
     media = (r.get("source") or {}).get("media", "video")
+    if r.get("keep", "line") != "full" and media != "channel":     # one line per source: what it taught or confirmed
+        for f in ("kind", "relevance"):
+            if r.get(f) in (None, "", []):
+                errs.append(f"{f}: required")
+        if not (r.get("lessons") or r.get("confirms")) and (r.get("relevance") or 0) > 2:
+            errs.append("lessons (the NEW lessons you wrote into the brain) or confirms (the brain lines it backs up): "
+                        "add at least one, or set relevance 1-2 for an off-topic source")
+        if r.get("kind") and r["kind"] not in KINDS:
+            errs.append(f"kind: '{r['kind']}' not in {KINDS} (scope is video craft + app marketing)")
+        rel = r.get("relevance")
+        if rel is not None and not (isinstance(rel, int) and 1 <= rel <= 5):
+            errs.append("relevance: 1-5")
+        bad = [p for p in r.get("pages") or [] if not (PAGES / f"{p}.md").exists()]
+        if bad:
+            errs.append(f"pages: unknown {bad} (have: {', '.join(sorted(x.stem for x in PAGES.glob('*.md')))})")
+        return errs
     required = REQUIRED if media == "video" else ["kind", "relevance"]
     for f in required:
         v = _get(r, f)
@@ -455,12 +498,46 @@ def commit(rid):
     if errs:
         raise ValueError("draft is incomplete:\n  " + "\n  ".join(errs))
     an = r.pop("_analysis", {}) or {}
+    if r.pop("keep", "line") != "full" and (r.get("source") or {}).get("media") != "channel":
+        r = {k: r[k] for k in SLIM_KEYS if r.get(k) not in (None, [], {})}     # the lessons live in the brain pages
     recs = [x for x in load() if x["id"] != r["id"]]
     recs.append(r)
     save(recs)
+    write_sources(recs)
     if not an.get("keep"):
         slim(d)
     return r, len(recs)
+
+
+def _summary(r, n=150):
+    """One line for SOURCES.md: the lessons it gave, else what it confirmed, else its first takeaway."""
+    if r.get("lessons"):
+        s = "; ".join(r["lessons"])
+    elif r.get("confirms"):
+        s = "confirms: " + "; ".join(r["confirms"])
+    else:
+        s = next((x for k in ("steal", "why_it_works", "insights") for x in (r.get(k) or [])), "")
+    return s if len(s) <= n else s[:n - 1].rstrip() + "…"
+
+
+def write_sources(recs=None):
+    """trends/SOURCES.md: every source learned, newest first, one line each (generated; never edited by hand)."""
+    recs = load() if recs is None else recs
+    L = ["# Sources the brain learned from", "",
+         "Generated by `./vtk kb commit` from `library.jsonl`: don't edit. Newest first. The lessons themselves live in",
+         "`BRAIN.md` and `brain/*.md`; 📝 = full notes kept (`./vtk kb show <id>`).", ""]
+    for r in sorted(recs, key=lambda r: ((r.get("source") or {}).get("captured") or "", r["id"]), reverse=True):
+        src = r.get("source") or {}
+        m = src.get("metrics") or {}
+        v = m.get("views") or m.get("top_views")
+        vs = f"{v / 1e6:.1f}M views" if v and v >= 1e6 else f"{v / 1e3:.0f}K views" if v else ""
+        title = (src.get("title") or r["id"]).replace("[", "(").replace("]", ")")[:70]
+        link = f"[{title}]({src['url']})" if src.get("url") else title
+        pages = ", ".join(r.get("pages") or [])
+        full = " 📝" if any(k in r for k in ("beats", "insights", "hook_bank")) else ""
+        parts = [src.get("captured") or "", src.get("creator") or "", link + full] + ([vs] if vs else [])
+        L.append("- " + " · ".join(p for p in parts if p) + (f" → **{pages}**: " if pages else " → ") + _summary(r))
+    SOURCES.write_text("\n".join(L) + "\n")
 
 
 def _size(p):
@@ -504,17 +581,23 @@ def clean():
     return freed, n
 
 
-def playbook_usage():
-    """('PLAYBOOK.md 80/150 lines, 8.9/16 KB', over_budget)"""
-    if not PLAYBOOK.exists():
-        return "no PLAYBOOK.md yet", False
-    t = PLAYBOOK.read_text()
-    lines, size = len(t.splitlines()), len(t.encode()) / 1000
-    over = lines > PLAYBOOK_BUDGET["lines"] or size > PLAYBOOK_BUDGET["kb"]
-    msg = f"PLAYBOOK.md {lines}/{PLAYBOOK_BUDGET['lines']} lines, {size:.1f}/{PLAYBOOK_BUDGET['kb']} KB"
+def brain_usage():
+    """('brain: BRAIN 32/40 · hooks 38/80 · ...', [pages over their cap])"""
+    if not BRAIN.exists():
+        return "no trends/BRAIN.md yet", []
+    parts, over = [], []
+    for f in [BRAIN] + sorted(PAGES.glob("*.md")):
+        t = f.read_text()
+        lines, size = len(t.splitlines()), len(t.encode()) / 1000
+        b = BUDGET["brain" if f == BRAIN else "page"]
+        name = "BRAIN" if f == BRAIN else f.stem
+        parts.append(f"{name} {lines}/{b['lines']}")
+        if lines > b["lines"] or size > b["kb"]:
+            over.append(f"{name} ({lines} lines, {size:.1f}/{b['kb']} KB)")
+    msg = "brain: " + " · ".join(parts)
     if over:
-        msg += (" -- OVER BUDGET: merge lines that say the same thing, move the weakest / oldest to "
-                f"{ARCHIVE.name}")
+        msg += (" -- OVER: " + ", ".join(over) + ": merge lines that say the same thing, move the weakest / oldest to "
+                f"trends/{ARCHIVE.name}")
     return msg, over
 
 
@@ -553,7 +636,8 @@ def related(text, exclude=None, limit=3):
             continue
         body = " ".join([str(_get(r, "source.title") or ""), str(r.get("format") or ""), " ".join(r.get("tags") or []),
                          " ".join(r.get("insights") or []), " ".join(r.get("why_it_works") or []),
-                         " ".join(r.get("steal") or [])])
+                         " ".join(r.get("steal") or []), " ".join(r.get("lessons") or []),
+                         " ".join(r.get("confirms") or [])])
         old = _words(body)
         if old:
             score = len(new & old) / (len(old) ** 0.5)
@@ -596,7 +680,7 @@ def row(r):
     m = r.get("source", {}).get("metrics", {})
     v = m.get("views") or m.get("top_views")        # a channel study shows its biggest video
     vs = f"{v / 1e6:.1f}M" if v and v >= 1e6 else f"{v / 1e3:.0f}k" if v else "-"
-    why = (r.get("why_it_works") or [""])[0]
+    why = (r.get("lessons") or r.get("why_it_works") or r.get("confirms") or [""])[0]
     return f"{r['id'][:44]:44s} {r.get('format', ''):16s} {(r.get('hook') or {}).get('type', ''):16s} {vs:>6s}  r{r.get('relevance', '-')}  {why[:70]}"
 
 

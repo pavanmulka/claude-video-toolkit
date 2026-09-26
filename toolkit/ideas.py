@@ -104,7 +104,7 @@ def write_board(ideas=None):
     L = ["# Video ideas board", "",
          "Generated from `workspace/ideas/ideas.jsonl`. Don't edit by hand: ask Claude (or `./vtk ideas add / set`).",
          "Pick one in any session: *\"let's do idea #3\"*. Claude reads the idea, your brand's notes",
-         "(`workspace/brand/<name>/`) and `trends/PLAYBOOK.md`, grooms it with you, then builds it.", "",
+         "(`workspace/brand/<name>/`) and the brain (`trends/BRAIN.md`), grooms it with you, then builds it.", "",
          "| # | status | planned | title | format | proof |", "|---|---|---|---|---|---|"]
     for i in sorted(ideas, key=lambda i: (i.get("status") in ("posted", "dropped"), i.get("planned") or "9999", i["id"])):
         L.append(f"| {i['id']} | {i.get('status', '')} | {i.get('planned') or ''} | {i['title']} | {i.get('format') or ''} | {i.get('proof') or ''} |")

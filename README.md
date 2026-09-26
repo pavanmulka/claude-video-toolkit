@@ -60,6 +60,15 @@ inbox/
 └── MyVideo_v1.srt        ← the captions as a file (some apps let you upload it)
 ```
 
+## 🧠 The brain: it learns from videos you like
+
+- 🔗 **Share any video link with Claude** (TikTok, YouTube, Instagram) and say "learn from this".
+- 👀 **Claude watches it**: the words, the pictures, even what the sound is doing.
+- ✍️ **Only new lessons are kept**, in plain words, in `trends/BRAIN.md` and its topic pages (`trends/brain/`).
+- ♻️ **Same lesson again?** It just becomes stronger proof. The same link twice is skipped.
+- 📈 **Every video you share makes every future video smarter**: Claude reads the brain before planning each one.
+- 🔒 **Your own brand's plans stay private** in `workspace/`; the brain only keeps lessons that help anyone.
+
 ## 🤖 Using AI video generators too?
 
 AI video generators (you type a sentence, and they make a short clip) are great for shots you can't film, like a phone

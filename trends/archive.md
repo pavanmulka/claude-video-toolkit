@@ -1,7 +1,7 @@
-# Playbook archive
+# Archive: retired lessons (not read when planning)
 
-Patterns that left `PLAYBOOK.md`: retired (contradicted or faded out) or merged into a stronger line. Not read when
-grooming; kept so nothing learned is lost. Newest first. Each entry: date moved, the line as it was, why it left, and
+Lessons that left the brain pages (`brain/*.md`): retired (contradicted or faded out) or merged into a stronger
+line. Not read when planning; kept so nothing learned is lost. Newest first. Each entry: date moved, the line as it was, why it left, and
 its evidence (`./vtk kb show <id>` for the full records).
 
 ## 2026-09-25

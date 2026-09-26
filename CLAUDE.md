@@ -29,7 +29,7 @@ personal lives in **`workspace/`** (git-ignored; `./setup.sh` creates it from `w
 
 1. **Read the brief.** Note required text, timings, output name/place, aspect, platforms. Read the
    brand's notes first (`workspace/brand/<brand>/`: MARKETING.md, product brief; see `workspace/CLAUDE.md`). Read
-   `trends/PLAYBOOK.md` and search the trends library for the brief's format (`./vtk kb search --format pov`);
+   the brain (`trends/BRAIN.md` + the pages the job needs) and search it for the brief's format (`./vtk kb search --format pov`);
    say in the plan which proven patterns you are using and why.
 2. **Analyse everything** (outputs land in `.work/analysis/`):
    - `./vtk inspect` — every file in `inbox/`: duration, fps (VFR), resolution, iPhone model, audio,
@@ -115,8 +115,8 @@ claude-video-toolkit/
   CLAUDE.local.md      (git-ignored) loads workspace/CLAUDE.md
   examples/            demo.yaml: renders with no footage (setup check)
   templates/           format templates for ./vtk new --template (13 native app-marketing formats)
-  trends/              trends knowledge base: PLAYBOOK.md (what's working now, capped) + PLAYBOOK_ARCHIVE.md (retired
-                       patterns) + library.jsonl (one line per video / channel study)
+  trends/              the brain: BRAIN.md (read first: golden rules + page guide), brain/<topic>.md (one lesson per line,
+                       capped pages), SOURCES.md (every source learned), library.jsonl, archive.md (retired lessons)
   motion/              Remotion (React) motion-graphics looks, rendered as layers (motion/README.md)
   brand/
     default/brand.yaml base brand every brand extends (+ themes.yaml: visual themes)
@@ -140,9 +140,9 @@ claude-video-toolkit/
 | `./vtk new <name> [--brand b] [--template t] [--theme th]` | `workspace/history/<date>_<name>/spec.yaml` from `inbox/` sources, optionally from a format template (`--list`) |
 | `./vtk validate <spec>` | errors with exact field paths, timeline table, VO phrase times, warnings |
 | `./vtk render <spec>` | final render + `.srt` + contact sheet + loudness; `--preview`, `--frames T..`, `--safezones`, `--stems`, `--no-audio`, `--out`, `--variant v` / `--all-variants`, `--aspect 1:1\|4:5\|16:9` / `--sizes`, `--jobs N` |
-| `./vtk learn <url\|file> [--note "why"] [--cookies chrome]` / `--text "..."` | add to the trends knowledge base: TikTok / YouTube / Instagram video, article link, video / audio / text file, or pasted notes -> analysis (pacing, transcript, hook sheet / text, sound map: spectrogram + loudness + detected build-ups / drops / hits) + draft record for Claude to complete. YouTube videos over 5 min (interviews, podcasts, talks) are learned from their captions + chapters with no download (`transcript.md`; no captions -> audio only through Whisper); `--video` forces the full video, `--transcript` the transcript for any link |
+| `./vtk learn <url\|file> [--note "why"] [--cookies chrome] [--again]` / `--text "..."` | teach the brain (a link learned before is refused unless `--again`): TikTok / YouTube / Instagram video, article link, video / audio / text file, or pasted notes -> analysis (pacing, transcript, hook sheet / text, sound map: spectrogram + loudness + detected build-ups / drops / hits) + draft record for Claude to complete. YouTube videos over 5 min (interviews, podcasts, talks) are learned from their captions + chapters with no download (`transcript.md`; no captions -> audio only through Whisper); `--video` forces the full video, `--transcript` the transcript for any link |
 | `./vtk learn <youtube channel url> [--top 60 --recent 10 --picks 6 --refresh]` | channel study: list every Short (titles + views), where the hits are (eras), captions of the top N + newest (text only) -> narration numbers, `transcripts.md`, thumbnail frame sheets (fonts, captions), deep-learn picks, ONE profile draft |
-| `./vtk kb [search <words> \| stats \| show <id> \| commit <id> \| remove <id> \| clean \| export --out f.sql]` | read/search the library (`--format --kind --platform --tag --since --min-views --min-relevance`), store a completed draft (prints the playbook budget), `clean` slims the cache of committed records, export Postgres SQL |
+| `./vtk kb [search <words> \| stats \| show <id> \| commit <id> \| remove <id> \| clean \| export --out f.sql]` | the brain: `./vtk kb` prints BRAIN.md + how full each page is; read/search the sources (`--format --kind --platform --tag --since --min-views --min-relevance`), store a completed draft (one line in SOURCES.md; prints the page usage), `clean` slims the cache of committed records, export Postgres SQL |
 | `./vtk ideas [show N \| add "title" \| set N k=v … \| remove N \| export --out f.sql]` | the video ideas backlog: board, full idea, add (or `--from idea.yaml`), status / links / metrics, SQL export |
 | `./vtk looks [--motion]` | everything available: themes, backgrounds, transitions, animations, easings, marks, text/caption styles, sounds, voice fx, Remotion looks |
 | `./vtk looks --render themes\|text\|marks\|transitions\|captions\|motion` | gallery sheet in `.work/looks/` (motion: `.work/motion/catalog.png`) rendered with the real engines |
@@ -231,7 +231,7 @@ words), `glow` {color, blur, strength}, `gradient` [colors], `fill: none` (outli
 
 - **Hook**: under 2 s for apps; outcome first ("Your flight's gate in 2 taps"), a number, a direct command or
   a recognisable moment. Script it as context lean → "But…" → contrarian snapback, with the payoff proven on screen
-  (`trends/PLAYBOOK.md`). Never open with the app name or a logo. Hook text 6–10 words, full size on frame 0,
+  (`trends/brain/hooks.md`). Never open with the app name or a logo. Hook text 6–10 words, full size on frame 0,
   inside the 3:4 profile-grid crop, and spoken by the VO too.
 - **Structure** (TikTok's own): hook 0–3 s · setup 3–6 · body 6–15 · reveal 15–20 · CTA 20–25. Brand TikToks
   15–30 s had the best engagement; Reels 30–60 s the best reach. Single-feature demos 20–35 s.
@@ -258,73 +258,74 @@ Never hand-edit the board.
   (hook, pain, proof, feeling, beats [{t, show, say}], narration, recordings, caption, cta, planned) and pass
   `--from file.yaml`.
 - **User says "let's do idea #N":** `./vtk ideas show N`, then read the brand's notes
-  (`workspace/brand/<brand>/`) and `trends/PLAYBOOK.md` and groom it. Keep the status current:
+  (`workspace/brand/<brand>/`) and the brain (`trends/BRAIN.md` + strategy, formats, hooks pages) and groom it. Keep the status current:
   `./vtk ideas set N status=groomed|recording|editing|ready|posted spec=workspace/history/<date>_<name>/spec.yaml`.
 - **After posting:** `./vtk ideas set N status=posted posted=<date> links.tiktok=<url> metrics.views=…` (also likes,
   shares, saves, comments). What performs feeds the next ideas.
 - `./vtk ideas` prints the board; `./vtk ideas export --out ideas.sql` exports it for the VPS (table `video_ideas`).
 
-## Trends knowledge base (trends/)
+## The brain: trends knowledge base (trends/)
 
-The user shares what they find so the toolkit stays current: TikTok / YouTube / Instagram links, screen
+The user shares what they find so the toolkit keeps getting smarter: TikTok / YouTube / Instagram links, screen
 recordings, audio (voice notes, podcast clips, sounds), article links, text files or pasted notes
-(`./vtk learn --text "..."`). Scope: **video craft + app marketing** only. Every source becomes the same kind of
-record (`source.media`: video | audio | text | talk | channel); audio, text, talk (interviews / podcasts: read
-`transcript.md`, chapters are its headings) and channel records fill `insights` (key takeaways, numbers) instead of
-hook/beats.
+(`./vtk learn --text "..."`), hundreds or thousands over time. Scope: **video craft + app marketing**. The goal is a
+brain that gets sharper with every source, not a pile of notes: **distil, don't collect.**
 
-- **Two layers, so daily sharing never makes grooming heavier:**
-  - `trends/library.jsonl`: the archive, one full JSON record per video or channel study (~7–9 KB each; grows, and that
-    is fine: never read whole, only searched with `./vtk kb search` and opened with `./vtk kb show <id>`;
-    `./vtk kb export --out f.sql` imports it into Postgres later).
-  - `trends/PLAYBOOK.md`: the digest read before every grooming. **One pattern = one line** with its evidence
-    (`[views: record ids]` or `[source, date]`). A source that only confirms a line raises that line's evidence; a new line
-    only for a new pattern; contradicted lines move to Fading, then to `trends/PLAYBOOK_ARCHIVE.md` (dated, not read when
-    grooming). No dated "update" blocks: everything sits under its topic. **Budget 150 lines / 16 KB**
-    (`./vtk kb commit` and `./vtk kb` print the usage); over it, merge lines and archive the weakest.
-  - Grooming reads only the playbook, MARKETING.md, the idea and the top 3–5 `kb search` hits for its format, whatever
-    the library's size. The cache (`.cache/trends/<id>/`) is slimmed on commit to the draft, the hook still and small
-    text / JSON (transcripts); `./vtk kb clean` does it for older records.
+**What the brain is (all plain text files, shared with everyone who uses the toolkit, so no brand names in them):**
+- `trends/BRAIN.md`: read first, before planning, grooming or scripting any video: the golden rules (the lessons proven
+  most often) + which topic page to open for which job. Max 40 lines.
+- `trends/brain/<topic>.md`: one page per topic (hooks, narration, structure, formats, text, motion-sound, product-cta,
+  strategy, fading, to-build). **One lesson per line**: the lesson, *why*, the tool to use, proof `[views: source id]`
+  (short ids work: `./vtk kb show lmxpbp`). Max 80 lines per page. A job opens BRAIN.md + only the pages it needs
+  (scripting: hooks + narration; editing: structure + text + motion-sound; grooming: strategy + formats + hooks).
+- `trends/archive.md`: retired or merged-away lessons, dated (never read when planning).
+- `trends/library.jsonl`: one entry per source: what it taught (`lessons`), which brain lines it backed up (`confirms`),
+  the pages it fed. Full notes (beats, craft, insights) only for special sources (`keep: full`: a format we may copy
+  beat by beat, a channel study). Searched (`./vtk kb search`), never read whole; `./vtk kb export` makes a Postgres file.
+- `trends/SOURCES.md`: generated list of every source learned, newest first, one line each. Never edited by hand.
+- `./vtk kb` prints BRAIN.md and how full each page is.
+
+**For every link (the loop):**
+1. `./vtk learn <url> --note "<their words>"`. A link learned before (same video, any URL form) is refused with what
+   it taught; only `--again` re-learns it. Many links at once: learn them one by one, then report once.
+2. Watch / read it fully: the hook sheet, the contact sheet, the **sound map** (spectrogram + loudness + speech + cuts,
+   with detected build-ups / drops / hits: what the sound does besides the words; the sound often carries half the
+   format) and the transcript. Talks (interviews, podcasts): `transcript.md`, chapters are its headings.
+3. Compare with the brain (BRAIN.md + the pages it touches; `learn` also prints the closest past sources) and decide:
+   - **New lesson** -> one new line in the right page (generic words: what any app could use).
+   - **Confirms a lesson** -> add this source as proof on that line, no new line; keep the 3 strongest proofs and a
+     count (`[4.9M: as7abw; 1.2M: x7k2; +5]`). Bigger numbers and newer sources outrank old ones.
+   - **Contradicts a lesson** -> move the old line to `fading.md` with the new evidence (later to `archive.md`).
+   - **Nothing new or off-topic** -> say so; relevance 1–2.
+4. Fill the draft (`.cache/trends/<id>/draft.yaml`): `kind` (app_marketing | trend_format | craft_reference),
+   `format`, `relevance` (1-5 for faceless app marketing), `lessons` (the new lines, short), `confirms` (the lines it
+   backed up, as `page: lesson`), `pages`, `tags`; `keep: full` only for a special source, then also `hook`, `beats`,
+   `craft`, `marketing`, `insights`, `why_it_works`, `steal` (generic), `engine` (template, features, gaps).
+5. `./vtk kb commit <id>` (validates, adds the line to SOURCES.md, deletes the download). Tool gaps go to `to-build.md`.
+
+**Keeping it sharp:** a page over its cap -> merge lines that say the same thing, archive the weakest or oldest. When
+many sources prove the same lesson, promote it to the golden rules in BRAIN.md (and demote the weakest rule). Recent,
+bigger-number evidence outweighs old; no dated "update" blocks, everything sits under its topic.
+
 - **Whole channels** (a creator with hundreds of Shorts): `./vtk learn <channel url>` instead of one by one. Read
   `transcripts.md` (every sampled script + medians) and the frame sheets, optionally `./vtk learn` 2–6 of the picks for
-  pacing and sound, then fill ONE profile record (`hook_bank`, `insights` with numbers, `steal`). Its patterns
-  go into the playbook's topic lines, not a creator section. YouTube shows a "confirm you're not a bot" wall after many
-  requests in a row (downloads too, for an hour or more): the study reads 2 at a time and stops at the wall; thumbnails
-  still work. Don't reach for the user's browser login (`--cookies chrome`) without asking.
-- When the user shares a link: run `./vtk learn <url> --note "<their words>"`, then **Read the hook sheet, the
-  contact sheet and the sound map** and the transcript it prints, and fill every null field in the draft
-  (`.cache/trends/<id>/draft.yaml`). The transcript only has words; the **sound map** (spectrogram + loudness + speech
-  + cuts, with detected build-ups / drops / hits) shows what the sound does: music, effects, an approaching roar,
-  silences. The sound often carries half the format (the paper-plane fake-out is a jet roar that swells to the reveal).
-  - `kind`: app_marketing | trend_format | craft_reference.
-  - `format`: our template names or skit, talking_head, ugc_review...
-  - `hook`: type, seconds, on_screen, visual.
-  - `beats`: t, role, what.
-  - `craft`: face, captions, text_anim, transitions, graphics, camera, sound (what you see in the sound map, with
-    times), music, voice, look, loop.
-  - `marketing`: product_first_seen, shown_as, cta, offer, comment_bait.
-  - `why_it_works`, `steal` (generic: what any app could borrow; no brand names, the library is shared).
-  - `engine`: template, theme, features, and gaps our tool can't do yet.
-  - `relevance`: 1-5 for faceless app marketing; plus `tags`.
-
-  Then `./vtk kb commit <id>` (validates; deletes the downloaded video and contact sheets) and **fold only what is new
-  into `trends/PLAYBOOK.md`** (rules above): weigh recent videos over old ones, mark fading patterns, stay within the
-  budget, and list `engine.gaps` under "to build next".
+  pacing and sound, then fill ONE profile record (`hook_bank`, `insights` with numbers, `steal`, `lessons`, `pages`;
+  always kept in full). Its lessons go into the topic pages, not a creator section. YouTube shows a "confirm you're not
+  a bot" wall after many requests in a row (downloads too, for an hour or more): the study reads 2 at a time and stops
+  at the wall; thumbnails still work. Don't reach for the user's browser login (`--cookies chrome`) without asking.
 - **Shared links are for learning only.** The user shares YouTube videos / Shorts / Reels at random, across sessions.
   Never change a video, spec or render because of one unless they ask.
-- **Every source must add something new.** `learn` prints the related records already in the library: write down what
-  is NEW versus those and the PLAYBOOK, and what only confirms a known pattern. In the PLAYBOOK, add new patterns,
-  strengthen confirmed ones (more evidence, bigger numbers), retire contradicted ones; never repeat a pattern.
 - **Then fit it to the user's brand** (`workspace/CLAUDE.md` names it and its goal). If it helps, update the brand's
   notes (e.g. its MARKETING.md hook bank) and the ideas backlog (a new idea or a better hook for an existing one): brand
-  plans go to the workspace, never into the shared library. Some shared videos have nothing to do with the brand: keep
+  plans go to the workspace, never into the shared brain. Some shared videos have nothing to do with the brand: keep
   only the transferable craft, set `relevance` 1–2, say so, and don't force brand changes.
 - **References are raw material, not templates.** The user shares them so our ideas get more original, not to copy
   them. Name the mechanism (why it holds attention: a promise, a clock, a game, a contrast, a sound) and rebuild it
-  around a truth about the product and a real moment from the audience's life, planning sound and picture together (sound can be the clock, the
-  progress or the twist). Every idea must hold 30 s (hook + foreshadow, something to wait for, the payoff last) and
-  leave the viewer something: a tip, a self-test, a laugh, relief.
-- **Report briefly:** new vs already known, the main takeaway, and what changed for the brand (or "nothing for the brand").
+  around a truth about the product and a real moment from the audience's life, planning sound and picture together
+  (sound can be the clock, the progress or the twist). Every idea must hold 30 s (hook + foreshadow, something to wait
+  for, the payoff last) and leave the viewer something: a tip, a self-test, a laugh, relief.
+- **Report briefly, in plain words:** new vs already known, the main takeaway, what changed in the brain (which page)
+  and for the brand (or "nothing new" / "nothing for the brand").
 - Instagram usually needs the user's browser login: `--cookies chrome` (or safari). YouTube uses Node as the
   JavaScript runtime (yt-dlp + yt-dlp-ejs). Learn patterns, never reuse other creators' footage or copy their content.
 
@@ -562,7 +563,7 @@ inside the centre 3:4 crop used by profile grids; `--frames 0` exports it as a c
 | `render.py` | render pipeline: motion layers, parallel chunk encoding + concat, audio mux, `.srt`, variants/sizes |
 | `brand.py`, `safezones.py`, `contactsheet.py`, `fonts.py`, `analysis/*` | as named (`brand.py` also merges themes) |
 | `paths.py` | folders: engine `brand/`, your `workspace/` (brands, history, ideas; `VTK_WORKSPACE` moves it), `inbox/`, caches |
-| `kb.py`, `channel.py`, `ideas.py` | trends knowledge base (learn, validate, commit, search, playbook budget, cache slimming); channel studies (listing, eras, captions -> narration numbers, thumbnail frame sheets, picks); ideas backlog |
+| `kb.py`, `channel.py`, `ideas.py` | the brain (learn, duplicate check, validate, commit, SOURCES.md, search, page budgets, cache slimming); channel studies (listing, eras, captions -> narration numbers, thumbnail frame sheets, picks); ideas backlog |
 | `motion/` (Node) | Remotion project: `src/looks/*.tsx`, `render.mjs` (`--jobs`, `--still`, `--list`), `catalog.json` |
 
 ## Extending the engine

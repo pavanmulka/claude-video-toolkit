@@ -268,6 +268,11 @@ def cmd_learn(a):
         sys.exit(1)
     if a.src and channel.is_channel(a.src):
         return _learn_channel(a)
+    old = kb.seen(a.src) if a.src and not a.again else None
+    if old:
+        print(f"already learned on {(old.get('source') or {}).get('captured')}: {old['id']}\n  {kb._summary(old)}\n"
+              f"(same video, so nothing to add; ./vtk kb show {old['id']} · learn it again: --again)")
+        return
     try:
         rid, draft, d, ref = kb.learn(a.src, note=a.note, cookies=a.cookies, keep=a.keep, rid=a.id, text=a.text,
                                       mode="video" if a.video else "talk" if a.transcript else None)
@@ -315,12 +320,11 @@ def cmd_learn(a):
             print(f"  {r['id']}  overlap {sc}  rel {r.get('relevance')}  {(_get_title(r))[:70]}")
     else:
         print("already in the library: nothing similar yet")
-    todo = ("kind, format, hook, beats, craft, marketing, insights, why_it_works, steal, engine, relevance, tags"
-            if media == "video" else "kind, app, insights (key takeaways + numbers), why_it_works, steal, engine, relevance, tags")
     what = {"text": "read the text", "talk": "read transcript.md", "audio": "read the sound map + transcript"}.get(
         media, "read the sheets, the sound map (what the sound does besides words) + transcript")
-    print(f"next (Claude): {what}, fill the draft ({todo}), "
-          f"then ./vtk kb commit {rid} and fold only NEW patterns into trends/PLAYBOOK.md ({kb.playbook_usage()[0]})")
+    print(f"next (Claude): {what}; write each NEW lesson into its trends/brain page (a lesson we know: add this source as "
+          f"proof); fill the draft: kind, relevance, lessons, confirms, pages, tags (keep: full only for a special source, "
+          f"then also beats / craft / insights); ./vtk kb commit {rid}.  {kb.brain_usage()[0]}")
 
 
 def _learn_channel(a):
@@ -366,8 +370,8 @@ def _learn_channel(a):
         for sc, r in rel:
             print(f"  {r['id']}  overlap {sc}  rel {r.get('relevance')}  {(_get_title(r))[:70]}")
     print(f"next (Claude): read transcripts.md, ./vtk learn the picks, fill the draft (kind, hook_bank, insights, why_it_works, "
-          f"steal, engine, relevance, tags), ./vtk kb commit {rid}, then fold only NEW patterns into "
-          f"trends/PLAYBOOK.md ({kb.playbook_usage()[0]})")
+          f"steal, engine, relevance, tags, lessons, pages), write the NEW lessons into the trends/brain pages, "
+          f"./vtk kb commit {rid}.  {kb.brain_usage()[0]}")
 
 
 def cmd_kb(a):
@@ -378,9 +382,9 @@ def cmd_kb(a):
         except (ValueError, FileNotFoundError) as e:
             print(f"x {e}")
             sys.exit(1)
-        usage, over = kb.playbook_usage()
-        print(f"stored {r['id']} ({n} items in {kb.LIBRARY.relative_to(kb.ROOT)}). Now fold only NEW patterns into "
-              f"{kb.PLAYBOOK.relative_to(kb.ROOT)} (confirmations raise a line's evidence tag).")
+        usage, over = kb.brain_usage()
+        print(f"stored {r['id']} ({n} sources; one line added to {kb.SOURCES.relative_to(kb.ROOT)}"
+              + (", full notes kept)" if "beats" in r or "insights" in r else ")"))
         print(("! " if over else "") + usage)
     elif a.action == "clean":
         freed, n = kb.clean()
@@ -401,7 +405,7 @@ def cmd_kb(a):
         print(f"{len(rs)} match(es)")
     elif a.action == "stats":
         print(kb.stats(a.since or 90))
-        print(kb.playbook_usage()[0])
+        print(kb.brain_usage()[0])
     elif a.action == "export":
         out = kb.export_sql()
         if a.out:
@@ -410,8 +414,8 @@ def cmd_kb(a):
         else:
             print(out, end="")
     else:
-        print(kb.PLAYBOOK.read_text() if kb.PLAYBOOK.exists() else "no playbook yet")
-        print(f"\n({len(kb.load())} items in the library; {kb.playbook_usage()[0]}; ./vtk kb search | stats | show <id>)")
+        print(kb.BRAIN.read_text() if kb.BRAIN.exists() else "no trends/BRAIN.md yet")
+        print(f"\n({len(kb.load())} sources learned (trends/SOURCES.md); {kb.brain_usage()[0]}; ./vtk kb search | stats | show <id>)")
 
 
 def cmd_ideas(a):
@@ -564,11 +568,12 @@ def main(argv=None):
     s.add_argument("--recent", type=int, default=10, help="channel: plus the N newest (default 10)")
     s.add_argument("--picks", type=int, default=6, help="channel: suggest N videos for a deep ./vtk learn (default 6)")
     s.add_argument("--refresh", action="store_true", help="channel: list the channel again instead of the cached list")
+    s.add_argument("--again", action="store_true", help="learn a link again even if it was learned before")
     s.set_defaults(fn=cmd_learn)
-    s = sub.add_parser("kb", help="trends knowledge base: (playbook) | search <words> | stats | show <id> | commit <id> | remove <id> | "
+    s = sub.add_parser("kb", help="the brain (trends knowledge base): (brain) | search <words> | stats | show <id> | commit <id> | remove <id> | "
                                   "clean | export")
-    s.add_argument("action", nargs="?", default="playbook",
-                   choices=["playbook", "search", "stats", "show", "commit", "remove", "clean", "export"])
+    s.add_argument("action", nargs="?", default="brain",
+                   choices=["brain", "playbook", "search", "stats", "show", "commit", "remove", "clean", "export"])
     s.add_argument("arg", nargs="?")
     s.add_argument("--format")
     s.add_argument("--kind")
