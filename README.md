@@ -60,6 +60,23 @@ inbox/
 └── MyVideo_v1.srt        ← the captions as a file (some apps let you upload it)
 ```
 
+## 🤖 Using AI video generators too?
+
+AI video generators (you type a sentence, and they make a short clip) are great for shots you can't film, like a phone
+floating in space. But they only make a few seconds at a time, they can't show your real app, and words in their clips
+often come out scrambled. This toolkit is the editor: it takes that AI shot plus your real phone recording, cuts out the
+weird parts, and adds the voice, captions, sounds and ending. The AI makes the wow moment, and the toolkit turns it into
+a whole video people watch to the end. Put the AI clip in `inbox` like any other video.
+
+```mermaid
+flowchart LR
+    A["Idea: open with a phone<br/>floating in space"] --> B["AI video generator<br/>makes the space shot"]
+    B --> C["Toolkit trims it and<br/>cuts out the weird parts"]
+    D["Your phone: a real recording<br/>of your app"] --> E
+    C --> E["Toolkit puts it all together:<br/>voice, captions, sounds, end card"]
+    E --> F["Finished video,<br/>ready to post"]
+```
+
 ## 🛠️ Setup (one time, about 1 hour)
 
 **You need:** a Mac · internet · 5 GB of free space · a Claude **Pro or Max** plan (the free plan doesn't include
