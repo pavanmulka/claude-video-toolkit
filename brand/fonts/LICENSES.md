@@ -19,6 +19,7 @@ All fonts in this folder are licensed under the SIL Open Font License 1.1
 - **Space Mono**: https://github.com/googlefonts/spacemono
 - **Caveat**: https://github.com/googlefonts/caveat
 - **Bricolage Grotesque**: https://github.com/ateliertriay/bricolage
+- **Great Vibes**: https://github.com/googlefonts/great-vibes
 
 Static weight files (Family-Weight.ttf) were instanced from the variable fonts with fontTools
 so libass/fontconfig (ffmpeg subtitles) can select weights by name.
