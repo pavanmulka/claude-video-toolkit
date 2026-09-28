@@ -4,6 +4,7 @@ mark, video picture-in-picture, Remotion motion layers), clip annotations (marks
 taps) and captions. Frames are piped to ffmpeg/libx264."""
 import json
 import math
+import re
 import subprocess
 
 import numpy as np
@@ -102,6 +103,19 @@ class Renderer:
                 spans = [(s["start"] / F, s["end"] / F) for s in plan["sections"] if s["name"] in cap["skip"]]
                 self.chunks = [c for c in self.chunks
                                if not any(a <= (c["start"] + c["end"]) / 2 + self.cap_offset < b for a, b in spans)]
+            if cap.get("skip_text"):  # drop caption chunks that duplicate on-screen text (headers, hooks)
+                def _norm(t):
+                    return re.sub(r"[^a-z0-9']+", "", t.lower())
+                stream = [_norm(w["w"]) for w in caption_words]
+                marked = set()
+                for phrase in cap["skip_text"]:
+                    target = [n for n in (_norm(t) for t in phrase.split()) if n]
+                    for i in range(len(stream) - len(target) + 1):
+                        if stream[i:i + len(target)] == target:
+                            marked.update(range(i, i + len(target)))
+                idx = {id(w): j for j, w in enumerate(caption_words)}
+                self.chunks = [c for c in self.chunks
+                               if not all(idx.get(id(w)) in marked for w in c["words"])]
             self.cap_anim = cap.get("anim", cs.get("anim", "pop"))
         self.warnings = []
 

@@ -412,6 +412,8 @@ captions:                              # from the voice-over transcript
   replace: {"Acme app": "AcmeApp"}     # spelling fixes (brand caption_replace also applies)
   skip: [hook]                         # sections without burned-in captions (the hook text already shows the words);
                                        #   the .srt keeps every word
+  skip_text: ["No app does it like this"]   # hide the caption chunks of these spoken phrases (their words are
+                                       #   already on screen as text/headers); matched case- and punctuation-insensitively
 
 audio:
   voiceover: {file: vo.mp3, start: 0.3, max_pause: 0.35, speed: 1.0, volume: 0, trim: [0, null], language: en,

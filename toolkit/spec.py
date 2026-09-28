@@ -34,7 +34,7 @@ KEYS = {
                 "fade", "rise", "opacity", "anim", "shine", "in", "speed", "layout", "notes"},
     "counter": {"from", "to", "format", "decimals", "prefix", "suffix", "dur", "delay", "ease", "symbol"},
     "anim": {"in", "out", "dur", "out_dur", "ease", "idle", "idle_amp", "idle_period", "dist", "by", "stagger", "caret"},
-    "captions": {"from", "style", "pos", "max_words", "max_chars", "offset", "enabled", "replace", "anim", "skip"},
+    "captions": {"from", "style", "pos", "max_words", "max_chars", "offset", "enabled", "replace", "anim", "skip", "skip_text"},
     "audio": {"voiceover", "music", "sfx", "tracks", "loudness"},
     "voiceover": {"file", "start", "speed", "max_pause", "volume", "fade_in", "fade_out", "trim", "denoise", "language", "place", "fx", "cut"},
     "music": {"file", "generate", "volume", "start", "offset", "fade_in", "fade_out", "duck", "loop", "end", "bpm"},
@@ -297,6 +297,9 @@ def load(path, check_files=True, variant=None, aspect=None):
                 for x in cap["skip"]:
                     if x not in names:
                         v.err("captions.skip", f"no section named '{x}' (sections: {', '.join(n for n in names if n)})")
+        if cap.get("skip_text") is not None:
+            if not isinstance(cap["skip_text"], list) or not all(isinstance(x, str) and x.strip() for x in cap["skip_text"]):
+                v.err("captions.skip_text", "must be a list of spoken phrases whose captions are hidden, e.g. [\"No app does it like this\"]")
 
     # ---- audio
     au = raw.get("audio") or {}
