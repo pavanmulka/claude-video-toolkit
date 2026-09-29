@@ -477,7 +477,9 @@ class Renderer:
 
     def _src_scale(self, seg, img):
         """source-px (original resolution) -> current frame px (proxy/preview may be smaller)."""
-        if seg["kind"] in ("image", "color", "motion") or not seg.get("src"):
+        if seg["kind"] == "image":
+            return self.pscale                 # image clips are loaded at pscale (preview/proxy)
+        if seg["kind"] in ("color", "motion") or not seg.get("src"):
             return 1.0
         info = self.spec["sources"][seg["src"]]["info"]
         return img.size[0] / info["width"] if info.get("width") else 1.0
@@ -511,6 +513,10 @@ class Renderer:
         win_w = sw / z
         win_h = sw * ch / cw / z
         cut = lay.get("status_cut", 0) * s
+        over = max(win_w / sw, win_h / max(sh - cut, 1))
+        if over > 1:  # window larger than the source (wide image in a taller card): crop to cover
+            win_w /= over
+            win_h /= over
         if f is None:
             cx, cy = sw / 2, cut + win_h / 2
         else:
