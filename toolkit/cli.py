@@ -435,7 +435,7 @@ def cmd_ideas(a):
                 if getattr(a, k, None):
                     fields[k] = getattr(a, k)
             i = ideas.add(title, **fields)
-            print(f"added idea #{i['id']}: {i['title']}  ->  {ideas.BOARD.relative_to(ideas.ROOT)}")
+            print(f"added idea #{i['id']}: {i['title']}  ->  {ideas.BOARD}")
         elif a.action == "show":
             i = ideas.get(a.arg)
             print(yaml_dump(i) if i else "not found")
