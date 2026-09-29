@@ -7,6 +7,7 @@ workspace/ideas/IDEAS.md (the board, regenerated after every change). The user c
     ./vtk ideas set <id> status=posted planned=2026-09-25 links.tiktok=https://... metrics.views=12000
     ./vtk ideas export --out ideas.sql   Postgres import (same style as ./vtk kb export)
 """
+import datetime
 import json
 import time
 
@@ -39,11 +40,22 @@ def _now():
     return time.strftime("%Y-%m-%d")
 
 
+def _clean(v):
+    """YAML parses bare dates (planned: 2026-09-25) as date objects; store ISO strings."""
+    if isinstance(v, datetime.date):
+        return v.isoformat()
+    if isinstance(v, dict):
+        return {k: _clean(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_clean(x) for x in v]
+    return v
+
+
 def add(title, **fields):
     ideas = load()
     idea = {"id": (max((i["id"] for i in ideas), default=0) + 1), "title": title, "status": "idea", "created": _now(),
             "updated": _now()}
-    idea.update({k: v for k, v in fields.items() if v not in (None, "", [], {})})
+    idea.update({k: _clean(v) for k, v in fields.items() if v not in (None, "", [], {})})
     if idea["status"] not in STATUSES:
         raise ValueError(f"status must be one of {STATUSES}")
     ideas.append(idea)
