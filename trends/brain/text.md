@@ -12,3 +12,6 @@ Part of the brain (start at `trends/BRAIN.md`). One lesson per line: the lesson,
   (≈ our `word_highlight` captions in lowercase); a second speaker in yellow under a small "mom:" label; running counts
   in an outlined pill (": 4", "$1.07"); an emoji checklist that ticks off steps; red arrows on the key object. Her
   2025+ captions got smaller and lighter, like the clean look above. [frame sheets: jennyhoyos]
+- **Text in AI video**: keep hooks, captions and labels in the editor (exact fonts, safe zones, A/B-able, no typos); let
+  the AI render only text that lives in the scene (a sign, one word on a form, a sticky note), 1–2 words max, and
+  never a product's UI. The models can render timed text, but it can't be edited or tested afterwards. [388K: wj8sgb]

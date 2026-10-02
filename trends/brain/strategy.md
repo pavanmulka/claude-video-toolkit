@@ -16,3 +16,12 @@ Part of the brain (start at `trends/BRAIN.md`). One lesson per line: the lesson,
   narrow ones for the buyer's pains (more trust per view); after 2 weeks kill a bucket whose 4 videos flopped. [92K: 1ilmgc]
 - **Own a lane (trust beats follower count)**: stack white space on topic, audience slice, delivery, format and look;
   borrow formats from distant niches instead of cloning the leader; hold back case-study proof while small. [92K: 1ilmgc]
+- **AI b-roll on a credit budget (Flow)**: lock every shot as text + a still first (text is free, stills cheap), set
+  "confirm before generating", 1 output per prompt, and pay only for approved shots; Omni Flash is ~15 credits per 10 s
+  at 720p vs ~20 per 8 s on Veo 3.1 Fast. Flow TV clips show their prompts: copy a look before spending. [388K: wj8sgb; 585K: 0vq7ue; +1]
+- **AI realism comes from small motion**: close-ups, slow push-ins, locked-off frames, light changes (a glow, a flicker);
+  fast action, walking crowds and lip-synced faces break first. Describe the style once per session (it carries over),
+  spend the words on lighting, keep the location short, and ask for "handheld smartphone" when it should look native. [4.7K: xzx594; 388K: wj8sgb]
+- **AI continuity**: lock character -> location -> shots (character sheet: 3 panels, flat grey light, one face), and start
+  each next shot from the previous shot's exact last frame (Flow can't export it; ffmpeg can). Fix a clip with an edit
+  prompt instead of regenerating. Places and objects first; people only as hands, backs or out of focus. [4.7K: xzx594; 388K: wj8sgb]
