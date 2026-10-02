@@ -457,30 +457,46 @@ class Renderer:
             pf, c0 = self._mask_cache[ck]
             ph, pw = pf.shape[:2]
             q = c0 * (pw / pinfo["width"])
+            fid = -1
         else:
             tfps, corners = screenplate.track(path, key)
             t = ts * lay.get("plate_speed", 1.0) + lay.get("plate_in", 0.0)
             idx = int(round(t * tfps)) % len(corners)
             pf, pw, ph = self._plate_frame(path, idx)
             q = corners[idx] * (pw / pinfo["width"])          # plate proxy px
+            fid = idx
         # plate -> output: cover the frame, optional zoom (+ slow push over the section) around the screen centre
         z = lay.get("zoom", 1.0)
         if lay.get("push"):
             z0, z1 = lay["push"]
             u = anim.ease("in_out", min(1.0, ts / max(0.1, (r1 - r0) / self.F)))
             z *= z0 + (z1 - z0) * u
-        k0 = max(W / pw, H / ph) * z
-        c = q.mean(0) if z > 1 else np.array([pw / 2, ph / 2])
-        ox = min(0.0, max(W - pw * k0, W / 2 - c[0] * k0))
-        oy = min(0.0, max(H - ph * k0, H / 2 - c[1] * k0))
-        A = np.array([[k0, 0, ox], [0, k0, oy]], np.float32)
+        # anti-aliasing: pre-scale the plate once to its base size with an area filter (fixed per run, so no shimmer),
+        # then only a small residual scale (the push) is resampled per frame
+        kbase = max(W / pw, H / ph) * lay.get("zoom", 1.0)
+        pw2, ph2 = int(round(pw * kbase)), int(round(ph * kbase))
         mask = screenplate.key_mask(pf, key)
         inside = np.zeros_like(mask)                          # only key inside the tracked screen (not green things behind)
         ctr = q.mean(0)
         cv2.fillConvexPoly(inside, (ctr + (q - ctr) * 1.03).astype(np.int32), 255)
         mask = cv2.bitwise_and(mask, inside)
-        plate = cv2.warpAffine(screenplate.despill(pf, mask), A, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        m = cv2.warpAffine(mask, A, (W, H), flags=cv2.INTER_LINEAR)
+        ck = ("plate_pre", str(path), self.pscale, pw2, fid)
+        if ck not in self._mask_cache:
+            if len([kk for kk in self._mask_cache if kk[0] == "plate_pre"]) > 2:   # video plates: keep only recent frames
+                for kk in [kk for kk in self._mask_cache if kk[0] == "plate_pre"]:
+                    del self._mask_cache[kk]
+            self._mask_cache[ck] = (cv2.resize(screenplate.despill(pf, mask), (pw2, ph2), interpolation=cv2.INTER_AREA),
+                                    cv2.resize(mask, (pw2, ph2), interpolation=cv2.INTER_AREA))
+        pre, pmask = self._mask_cache[ck]
+        q = q * np.float32([pw2 / pw, ph2 / ph])
+        r = z / lay.get("zoom", 1.0)                          # residual scale (push), ~1.0-1.05
+        c = q.mean(0)                                         # always centre on the screen (clamped to the plate)
+        ox = min(0.0, max(W - pw2 * r, W / 2 - c[0] * r))
+        oy = min(0.0, max(H - ph2 * r, H / 2 - c[1] * r))
+        k0 = r
+        A = np.array([[r, 0, ox], [0, r, oy]], np.float32)
+        plate = cv2.warpAffine(pre, A, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+        m = cv2.warpAffine(pmask, A, (W, H), flags=cv2.INTER_LINEAR)
         m = cv2.erode(m, np.ones((3, 3), np.uint8))
         m = cv2.GaussianBlur(m, (0, 0), max(0.6, 1.2 * self.pscale)).astype(np.float32)[..., None] / 255.0
         quad = (q * k0 + [ox, oy]).astype(np.float32)
@@ -503,7 +519,19 @@ class Renderer:
                 rec = rec.copy()
                 rec[y0b:y1b, x0b:x1b] = np.median(side.reshape(-1, 3), 0).astype(np.uint8)
         Hm = cv2.getPerspectiveTransform(np.float32([[0, 0], [sw_, 0], [sw_, sh_], [0, sh_]]), quad)
-        warped = cv2.warpPerspective(rec, Hm, (W, H), flags=cv2.INTER_LINEAR).astype(np.float32)
+        # the recording shrinks ~3x into the screen: area-filter it to a fixed size first (per segment) so UI text
+        # doesn't shimmer as the push changes the scale
+        fk = ("plate_fs", seg["label"])
+        if fk not in self._mask_cache:
+            self._mask_cache[fk] = min(1.0, 1.25 * float(np.linalg.norm(quad[1] - quad[0])) / sw_)
+        fs = self._mask_cache[fk]
+        if fs < 0.98:
+            small = cv2.resize(rec, (int(round(sw_ * fs)), int(round(sh_ * fs))), interpolation=cv2.INTER_AREA)
+            ssh, ssw = small.shape[:2]
+            Hs = cv2.getPerspectiveTransform(np.float32([[0, 0], [ssw, 0], [ssw, ssh], [0, ssh]]), quad)
+            warped = cv2.warpPerspective(small, Hs, (W, H), flags=cv2.INTER_LINEAR).astype(np.float32)
+        else:
+            warped = cv2.warpPerspective(rec, Hm, (W, H), flags=cv2.INTER_LINEAR).astype(np.float32)
         sd = lay.get("screen_dim", 0.0)
         if sd:
             warped *= (1 - sd)
