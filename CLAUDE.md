@@ -332,8 +332,8 @@ bigger-number evidence outweighs old; no dated "update" blocks, everything sits 
 ## Spec reference
 
 Units: times in seconds. Sizes/positions are design px for a 1080-wide 9:16 frame (scaled for other
-aspects) or `"NN%"` of the frame. Relative file paths resolve against `inbox/` (overlay images also
-against the spec folder and `brand/`).
+aspects) or `"NN%"` of the frame. Relative file paths resolve against `inbox/` (sources also against
+`workspace/brand/` and `brand/`, so reusable plates live in `<brand>/plates/`; overlay images also against the spec folder).
 
 ```yaml
 version: 1
@@ -518,6 +518,7 @@ Shell (~2.5 min, once). Studio preview of every look: `cd motion && npm run stud
 | `card` | rounded content window `x, y, w, h, radius` on a blurred background; `status_cut` hides the status bar | `focus` = centre of the visible source window (source px); `zoom` crops tighter |
 | `fullbleed` | covers the frame | zoom/focus/pan crop the source |
 | `fit` | whole source visible (letterboxed) on the background, optional `radius` | zoom scales the source |
+| `plate` | the recording inside **filmed** footage of a hand holding a phone with a chroma-key screen (`plate:` source name, e.g. an AI clip; `key: green\|blue`, `zoom`, `plate_in`, `plate_speed`, `screen_dim`, `inset`, `island: auto` erases the recorded pill + red dot). The screen is tracked per frame (cached), the recording is warped in with perspective, fingers over the screen stay in front; plates loop (make them start and end on the same frame). Taps, marks and lifts map through the warp | `zoom` crops the plate around the screen. Keep text above the phone (the plate decides where it is) |
 
 ### Brands
 
@@ -561,6 +562,7 @@ inside the centre 3:4 crop used by profile grids; `--frames 0` exports it as a c
 | `audio.py` | VO processing (pauses, speed), music (file/generated), ducking, sfx, clip audio, LUFS |
 | `synth.py` | synthesized SFX and music bed |
 | `captions.py` | transcript -> caption chunks / phrases |
+| `screenplate.py` | phone plates: chroma-key screen tracking (4 corners per frame, smoothed, cached in `.cache/screens/`), key mask, despill |
 | `media.py` | ffprobe, CFR proxies (VFR screen recordings -> 60 fps), frame reader, audio decode |
 | `render.py` | render pipeline: motion layers, parallel chunk encoding + concat, audio mux, `.srt`, variants/sizes |
 | `brand.py`, `safezones.py`, `contactsheet.py`, `fonts.py`, `analysis/*` | as named (`brand.py` also merges themes) |

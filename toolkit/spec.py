@@ -42,7 +42,8 @@ KEYS = {
     "sfx": {"sound", "at", "src", "volume", "align", "pan"},
     "track": {"file", "at", "volume", "fx", "fade_in", "fade_out", "trim", "loop", "dur", "pan", "duck", "notes"},
     "layout": {"type", "style", "width", "top", "height", "center_y", "center_x", "finish", "island", "shadow", "bezel", "buttons",
-               "x", "y", "w", "h", "radius", "status_cut", "pos", "border", "border_width", "focus"},
+               "x", "y", "w", "h", "radius", "status_cut", "pos", "border", "border_width", "focus",
+               "plate", "plate_in", "plate_speed", "key", "zoom", "inset", "screen_dim"},
     "background": {"type", "color", "dim", "tint", "top", "bottom", "file", "blur", "colors", "base", "speed", "size", "seed", "glows",
                    "accent", "accent2", "stars", "stars_amount", "line", "line_opacity", "spacing", "glow", "dot", "dot_opacity",
                    "color2", "count", "center", "grain", "pos", "radius", "strength", "angle"},
@@ -51,7 +52,7 @@ KEYS = {
     "text": {"content", "style", "pos", "behind"},
     "look": {"grain", "vignette", "contrast", "saturation", "brightness", "gamma", "warmth", "lift", "sharpen", "chroma", "bloom"},
 }
-LAYOUTS = {"iphone", "card", "fullbleed", "fit"}
+LAYOUTS = {"iphone", "card", "fullbleed", "fit", "plate"}
 TRANSITIONS = {"cut", "crossfade", "dip", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash"}
 BACKGROUNDS = {"blur", "color", "gradient", "image", "mesh", "glow", "paper", "grid", "dots", "rays", "aurora", "noise", "spotlight"}
 MARKS = {"circle", "underline", "strike", "highlight", "box", "brackets", "arrow", "check", "cross", "ping", "spotlight", "scribble", "dot"}
@@ -214,6 +215,11 @@ def load(path, check_files=True, variant=None, aspect=None):
         src_raw = {}
     for k, f in src_raw.items():
         fp = expand(f["file"] if isinstance(f, dict) else f)
+        for bdir in ([] if fp.exists() else BRANDS):     # reusable brand assets (e.g. phone plates in <brand>/plates/)
+            alt = expand(f["file"] if isinstance(f, dict) else f, bdir)
+            if alt.exists():
+                fp = alt
+                break
         if check_files and not fp.exists():
             near = difflib.get_close_matches(fp.name, [p.name for p in fp.parent.glob("*")], n=1) if fp.parent.exists() else []
             v.err(f"sources.{k}", f"file not found: {fp}" + (f" (did you mean '{near[0]}'?)" if near else ""))
@@ -384,6 +390,11 @@ def _check_layout(v, path, lay, brand):
         v.keys(path, lay, "layout")
     if t not in LAYOUTS:
         v.err(path, f"unknown layout '{t}' (use {', '.join(sorted(LAYOUTS))})")
+    if t == "plate" and isinstance(lay, dict):
+        if not lay.get("plate"):
+            v.err(f"{path}.plate", "required: the source name of the phone plate (a hand holding a phone with a green screen)")
+        if lay.get("key", "green") not in ("green", "blue"):
+            v.err(f"{path}.key", "must be green | blue")
 
 
 def _check_clip(v, cp, c, sources, brand, ids):

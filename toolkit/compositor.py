@@ -15,6 +15,7 @@ from . import backgrounds
 from . import brand as brandmod
 from . import captions as capmod
 from . import safezones
+from . import screenplate
 from . import shapes
 from .device import IPhone, detect_recorded_island
 from .media import FFMPEG, probe, proxy, read_frames, read_rgba, still
@@ -81,6 +82,7 @@ class Renderer:
         self._xf = {}          # segment label -> (ax, bx, ay, by, clip rect): source px -> output px
         self._H = {}           # segment label -> 3x3 homography applied after _xf (3D tilt), if any
         self._ov_gens = {}
+        self._plate_readers = {}
         self.marks = self.brand.get("marks", {})
         self.look = spec.get("look") or {}
         lp = spec["output"].get("loop")
@@ -383,6 +385,8 @@ class Renderer:
             fr = self.l_card(seg, img, k)
         elif t == "iphone":
             fr = self.l_iphone(seg, img, k)
+        elif t == "plate":
+            fr = self.l_plate(seg, img, k)
         else:
             fr = self.l_fit(seg, img, k)
         if seg.get("dim"):
@@ -398,6 +402,86 @@ class Renderer:
                 if a > 0:
                     fr = Image.blend(fr, Image.new("RGBA", fr.size, color(d["color"], self.pal)), a)
         return fr
+
+    def _plate_frame(self, path, idx):
+        """RGB frame `idx` of a plate's CFR proxy (sequential reads are streamed, jumps restart the reader)."""
+        pth, fps, w, h = proxy(path, self.pscale)
+        st = self._plate_readers.get(path)
+        if st is None or idx < st[1] or idx - st[1] > 45:
+            if st is not None:
+                st[0].close()
+            n = max(1, int(round(probe(pth)["duration"] * fps)))
+            st = [read_frames(pth, w, h, idx, n - idx, fps), idx, None]
+            self._plate_readers[path] = st
+        while st[1] <= idx:
+            fr = next(st[0], None)
+            if fr is None:
+                break
+            st[2], st[1] = fr, st[1] + 1
+        return st[2], w, h
+
+    def l_plate(self, seg, img, k):
+        """The recording inside a filmed phone: a plate (hand holding a phone with a chroma-key screen) is tracked per
+        frame and the real screen recording is warped into its screen; fingers over the screen stay in front."""
+        import cv2
+        W, H = self.W, self.H
+        lay = seg["layout"]
+        path = self.spec["sources"][lay["plate"]]["path"]
+        key = lay.get("key", "green")
+        tfps, corners = screenplate.track(path, key)
+        sec = self.plan["sections"][seg["section"]] if seg.get("section") is not None else None
+        t = ((seg["start"] + k - (sec["start"] if sec else seg["start"])) / self.F) * lay.get("plate_speed", 1.0) + lay.get("plate_in", 0.0)
+        idx = int(round(t * tfps)) % len(corners)
+        pf, pw, ph = self._plate_frame(path, idx)
+        full_w = self.spec["sources"][lay["plate"]]["info"]["width"]
+        q = corners[idx] * (pw / full_w)                      # plate proxy px
+        # plate -> output: cover the frame, optional zoom around the screen centre
+        z = lay.get("zoom", 1.0)
+        k0 = max(W / pw, H / ph) * z
+        c = q.mean(0) if z > 1 else np.array([pw / 2, ph / 2])
+        ox = min(0.0, max(W - pw * k0, W / 2 - c[0] * k0))
+        oy = min(0.0, max(H - ph * k0, H / 2 - c[1] * k0))
+        A = np.array([[k0, 0, ox], [0, k0, oy]], np.float32)
+        mask = screenplate.key_mask(pf, key)
+        inside = np.zeros_like(mask)                          # only key inside the tracked screen (not green things behind)
+        ctr = q.mean(0)
+        cv2.fillConvexPoly(inside, (ctr + (q - ctr) * 1.03).astype(np.int32), 255)
+        mask = cv2.bitwise_and(mask, inside)
+        plate = cv2.warpAffine(screenplate.despill(pf, mask), A, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+        m = cv2.warpAffine(mask, A, (W, H), flags=cv2.INTER_LINEAR)
+        m = cv2.erode(m, np.ones((3, 3), np.uint8))
+        m = cv2.GaussianBlur(m, (0, 0), max(0.6, 1.2 * self.pscale)).astype(np.float32)[..., None] / 255.0
+        quad = (q * k0 + [ox, oy]).astype(np.float32)
+        inset = float(lay.get("inset", 0)) * self.U
+        if inset:
+            ctr = quad.mean(0)
+            quad = ctr + (quad - ctr) * (1 + inset / max(1.0, np.linalg.norm(quad[1] - quad[0])))
+        rec = np.asarray(img.convert("RGB"))
+        sh_, sw_ = rec.shape[:2]
+        if lay.get("island", "auto") == "auto" and seg.get("src"):   # erase the recorded pill + red dot (the plate has its own)
+            ck = ("plate_island", seg["src"], sw_)
+            if ck not in self._mask_cache:
+                self._mask_cache[ck] = detect_recorded_island(img)
+            bb = self._mask_cache[ck]
+            if bb:
+                x0b, y0b, x1b, y1b = bb
+                pad = max(2, int(0.006 * sw_))
+                x0b, y0b, x1b, y1b = max(0, x0b - pad), max(0, y0b - pad), min(sw_, x1b + pad), min(sh_, y1b + pad)
+                side = np.concatenate([rec[y0b:y1b, max(0, x0b - 3 * pad):x0b], rec[y0b:y1b, x1b:x1b + 3 * pad]], 1)
+                rec = rec.copy()
+                rec[y0b:y1b, x0b:x1b] = np.median(side.reshape(-1, 3), 0).astype(np.uint8)
+        Hm = cv2.getPerspectiveTransform(np.float32([[0, 0], [sw_, 0], [sw_, sh_], [0, sh_]]), quad)
+        warped = cv2.warpPerspective(rec, Hm, (W, H), flags=cv2.INTER_LINEAR).astype(np.float32)
+        sd = lay.get("screen_dim", 0.0)
+        if sd:
+            warped *= (1 - sd)
+        out = plate.astype(np.float32) * (1 - m) + warped * m
+        s_ = self._src_scale(seg, img)
+        x0, y0 = quad.min(0)
+        x1, y1 = quad.max(0)
+        self._xf[seg["label"]] = (s_, 0.0, s_, 0.0, (x0, y0, x1, y1))
+        self._H[seg["label"]] = Hm.astype(np.float64)
+        return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert("RGBA")
 
     def l_motion(self, seg, img, k):
         t = (seg["start"] + k) / self.F
