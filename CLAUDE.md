@@ -122,6 +122,7 @@ claude-video-toolkit/
     default/brand.yaml base brand every brand extends (+ themes.yaml: visual themes)
     fonts/             Google Fonts (restored by ./vtk fonts --sync) + LICENSES.md
     sfx/               generated sounds + sfx.json (peak times)
+    plates/            phone plates: hands holding a green-screen phone (README.md: catalog + how to make one)
     music/             drop licensed music here (README.md); generated/ for synthesized beds
   toolkit/             the engine (see "Engine map")
   .work/<project>/     analysis, frames, previews, contact sheets, stems (git-ignored)
@@ -248,6 +249,20 @@ words), `glow` {color, blur, strength}, `gradient` [colors], `fill: none` (outli
   ad look, watermarks, near-identical templated uploads (vary structure, not only text), stock AI voices
   (generic narrator presets; use a natural conversational ElevenLabs voice).
 - Label realistic AI media where the platform requires it (TikTok); an AI narrator may count.
+
+## AI scenes (Google Flow) + phone plates
+
+Story hooks can open on AI-generated places (Google Flow), then hand over to the real app inside a phone plate.
+- **Claude drives Flow** in the built-in browser after the user signs in (never an unofficial Flow MCP). Agent/prompt
+  settings: images 9:16 Nano Banana Pro (0 credits), video 9:16 x1 Omni Flash (~15 credits / 10 s, 720p; download
+  1080p upscaled). Confirm before generating stays on. Downloads land in `inbox/`; move paid clips out of `inbox/` into
+  the brand's folder (e.g. `workspace/brand/<brand>/broll/`) so clearing the inbox never loses them.
+- **Stills first, video only for approved shots.** Places, objects and hands; no faces, no talking mouths. Small motion
+  (push-in, flicker, pen tap, phone turned to camera) reads as real. Text lives in our engine; AI renders only 1–2
+  words that belong in the scene (a sign, a form label). Never an AI app screen.
+- **The bridge:** an AI shot of a phone turning to camera with a white screen, then a `flash` transition into the plate
+  layout, makes the app part of the story. Phone plates (`brand/plates/`) are stills: steady, reusable, free.
+- Realistic AI picture or voice -> the platform's AI-generated label. The brain's strategy page has the credit lessons.
 
 ## Video ideas backlog (workspace/ideas/)
 
