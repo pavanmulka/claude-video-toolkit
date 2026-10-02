@@ -43,7 +43,7 @@ KEYS = {
     "track": {"file", "at", "volume", "fx", "fade_in", "fade_out", "trim", "loop", "dur", "pan", "duck", "notes"},
     "layout": {"type", "style", "width", "top", "height", "center_y", "center_x", "finish", "island", "shadow", "bezel", "buttons",
                "x", "y", "w", "h", "radius", "status_cut", "pos", "border", "border_width", "focus",
-               "plate", "plate_in", "plate_speed", "key", "zoom", "inset", "screen_dim"},
+               "plate", "plate_in", "plate_speed", "key", "zoom", "inset", "screen_dim", "push"},
     "background": {"type", "color", "dim", "tint", "top", "bottom", "file", "blur", "colors", "base", "speed", "size", "seed", "glows",
                    "accent", "accent2", "stars", "stars_amount", "line", "line_opacity", "spacing", "glow", "dot", "dot_opacity",
                    "color2", "count", "center", "grain", "pos", "radius", "strength", "angle"},

@@ -420,6 +420,22 @@ class Renderer:
             st[2], st[1] = fr, st[1] + 1
         return st[2], w, h
 
+    def _plate_run(self, seg):
+        """(first, end) output frame of the run of back-to-back segments that use the same plate as `seg`."""
+        key = ("plate_run", seg["label"])
+        if key not in self._mask_cache:
+            segs = self.plan["segments"]
+            i = next(j for j, s_ in enumerate(segs) if s_["label"] == seg["label"])
+            same = lambda s_: s_["layout"].get("type") == "plate" and s_["layout"].get("plate") == seg["layout"].get("plate")  # noqa: E731
+            a = i
+            while a > 0 and same(segs[a - 1]):
+                a -= 1
+            b = i
+            while b + 1 < len(segs) and same(segs[b + 1]):
+                b += 1
+            self._mask_cache[key] = (segs[a]["start"], segs[b]["end"])
+        return self._mask_cache[key]
+
     def l_plate(self, seg, img, k):
         """The recording inside a filmed phone: a plate (hand holding a phone with a chroma-key screen) is tracked per
         frame and the real screen recording is warped into its screen; fingers over the screen stay in front."""
@@ -428,15 +444,31 @@ class Renderer:
         lay = seg["layout"]
         path = self.spec["sources"][lay["plate"]]["path"]
         key = lay.get("key", "green")
-        tfps, corners = screenplate.track(path, key)
-        sec = self.plan["sections"][seg["section"]] if seg.get("section") is not None else None
-        t = ((seg["start"] + k - (sec["start"] if sec else seg["start"])) / self.F) * lay.get("plate_speed", 1.0) + lay.get("plate_in", 0.0)
-        idx = int(round(t * tfps)) % len(corners)
-        pf, pw, ph = self._plate_frame(path, idx)
-        full_w = self.spec["sources"][lay["plate"]]["info"]["width"]
-        q = corners[idx] * (pw / full_w)                      # plate proxy px
-        # plate -> output: cover the frame, optional zoom around the screen centre
+        pinfo = self.spec["sources"][lay["plate"]]["info"]
+        r0, r1 = self._plate_run(seg)                         # one continuous plate across consecutive plate clips
+        ts = (seg["start"] + k - r0) / self.F
+        if pinfo.get("kind") == "image":                      # still plate: rock steady; life comes from `push`
+            ck = ("plate_img", str(path), self.pscale)
+            if ck not in self._mask_cache:
+                im = Image.open(path).convert("RGB")
+                if self.pscale != 1:
+                    im = im.resize((int(im.width * self.pscale), int(im.height * self.pscale)), Image.LANCZOS)
+                self._mask_cache[ck] = (np.asarray(im), screenplate.track_image(path, key))
+            pf, c0 = self._mask_cache[ck]
+            ph, pw = pf.shape[:2]
+            q = c0 * (pw / pinfo["width"])
+        else:
+            tfps, corners = screenplate.track(path, key)
+            t = ts * lay.get("plate_speed", 1.0) + lay.get("plate_in", 0.0)
+            idx = int(round(t * tfps)) % len(corners)
+            pf, pw, ph = self._plate_frame(path, idx)
+            q = corners[idx] * (pw / pinfo["width"])          # plate proxy px
+        # plate -> output: cover the frame, optional zoom (+ slow push over the section) around the screen centre
         z = lay.get("zoom", 1.0)
+        if lay.get("push"):
+            z0, z1 = lay["push"]
+            u = anim.ease("in_out", min(1.0, ts / max(0.1, (r1 - r0) / self.F)))
+            z *= z0 + (z1 - z0) * u
         k0 = max(W / pw, H / ph) * z
         c = q.mean(0) if z > 1 else np.array([pw / 2, ph / 2])
         ox = min(0.0, max(W - pw * k0, W / 2 - c[0] * k0))

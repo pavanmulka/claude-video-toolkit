@@ -79,6 +79,16 @@ def track(path, key="green", smooth=5):
     return float(fps), cs.astype(np.float32)
 
 
+def track_image(path, key="green"):
+    """Screen corners of a still plate (full-res px), float32 [4, 2]."""
+    from PIL import Image
+    rgb = np.asarray(Image.open(path).convert("RGB"))
+    c = _corners(key_mask(rgb, key))
+    if c is None:
+        raise RuntimeError(f"{Path(path).name}: no {key} screen found (is the screen a flat chroma-key colour?)")
+    return c
+
+
 def despill(rgb, mask, width=6):
     """Remove green fringe on plate pixels next to the screen (bezel edge, fingers)."""
     ring = cv2.dilate(mask, np.ones((width, width), np.uint8)) > 0
