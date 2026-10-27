@@ -161,19 +161,48 @@ def url_key(url):
     """A stable key for a link: the YouTube / TikTok video id, the Instagram shortcode, else the URL without query."""
     u = str(url or "")
     for pat in (r"(?:youtube\.com/(?:watch\?v=|shorts/|live/)|youtu\.be/)([\w-]{11})", r"tiktok\.com/.*/video/(\d+)",
-                r"instagram\.com/(?:reel|reels|p|tv)/([\w-]+)"):
+                r"instagram\.com/(?:reel|reels|p|tv)/([\w-]+)",
+                r"facebook\.com/(?:watch/?\?(?:.*&)?v=|reel/|[\w.]+/videos/(?:[\w.-]+/)?)(\d+)", r"fb\.watch/([\w-]+)"):
         m = re.search(pat, u)
         if m:
             return m.group(1)
     return re.sub(r"[?#].*$", "", u).rstrip("/").lower() or None
 
 
+def resolve_share(url):
+    """Facebook share links (facebook.com/share/r/…, fb.watch) hide the video id behind a redirect: follow it."""
+    if not re.search(r"facebook\.com/share/|fb\.watch/", str(url or "")):
+        return url
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh) vtk-learn"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            final = r.geturl()
+            if not re.search(r"(?:watch/?\?(?:.*&)?v=|reel/|/videos/)\d+", final):
+                m = re.search(r'(?:"video_id"|"videoID"|/reel/|v=)"?:?"?(\d{8,})', r.read(400000).decode("utf-8", "replace"))
+                if m:
+                    final = f"https://www.facebook.com/reel/{m.group(1)}"
+            return final
+    except Exception:
+        return url
+
+
 def seen(url):
-    """The library record for a link learned before (same video, any URL form), else None."""
-    k = url_key(url)
-    if not k:
+    """The library record for a link learned before (same video, any URL form, share links followed), else None."""
+    keys = {url_key(url)}
+    if re.search(r"facebook\.com/share/|fb\.watch/", str(url or "")):
+        keys.add(url_key(resolve_share(url)))
+    keys.discard(None)
+    if not keys:
         return None
-    return next((r for r in load() if url_key(_get(r, "source.url")) == k), None)
+    for r in load():
+        rk = {url_key(_get(r, "source.url")), url_key(_get(r, "source.share_url"))}
+        if keys & rk:
+            return r
+        vid = re.search(r"_facebook_(\d+)$", r.get("id", ""))
+        if vid and vid.group(1) in keys:
+            return r
+    return None
 
 
 def learn_text(src, note=None, rid=None, text=None):
@@ -246,7 +275,8 @@ def learn(src, note=None, cookies=None, keep=False, rid=None, text=None, mode=No
         vid = info.get("id") or _slug(info.get("title", "video"))
         rid = rid or f"{today}_{platform}_{_slug(vid, 24)}"
         up = info.get("upload_date")
-        source = {"url": info.get("webpage_url") or src, "platform": platform,
+        source = {"url": info.get("webpage_url") or src, "share_url": src if src != info.get("webpage_url") else None,
+                  "platform": platform,
                   "creator": info.get("uploader_id") and f"@{info['uploader_id']}" if platform in ("tiktok", "instagram") else
                   info.get("uploader") or info.get("channel"),
                   "title": (info.get("title") or "")[:160], "description": (info.get("description") or "")[:400],

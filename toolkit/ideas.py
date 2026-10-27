@@ -78,6 +78,8 @@ def _coerce(v):
         return v
     if isinstance(out, (_dt.date, _dt.datetime)):
         return v                       # keep dates as the text the user typed (2026-09-28)
+    if isinstance(out, (dict, list)) and not v.lstrip().startswith(("{", "[")):
+        return v                       # prose with ": " or "- " stays text (notes=Offer retired: use the trial line)
     return out
 
 

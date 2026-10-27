@@ -198,8 +198,8 @@ def cmd_sfx(a):
 def cmd_music(a):
     from .media import write_wav
     from .synth import music_bed
-    y = music_bed(a.duration, bpm=a.bpm, key=a.key, drop=a.drop, resolve=a.resolve, seed=a.seed)
-    out = Path(a.out) if a.out else BRAND / "music" / "generated" / f"bed_{a.bpm}bpm_{a.key}_{a.duration:g}s.wav"
+    y = music_bed(a.duration, bpm=a.bpm, key=a.key, drop=a.drop, resolve=a.resolve, seed=a.seed, mood=a.mood)
+    out = Path(a.out) if a.out else BRAND / "music" / "generated" / f"bed_{a.mood}_{a.bpm or 'auto'}bpm_{a.key}_{a.duration:g}s.wav"
     out.parent.mkdir(parents=True, exist_ok=True)
     write_wav(out, y)
     print(f"music bed: {out}")
@@ -403,6 +403,15 @@ def cmd_kb(a):
         for r in rs:
             print(kb.row(r))
         print(f"{len(rs)} match(es)")
+    elif a.action == "recent":
+        n = int(a.arg) if a.arg and a.arg.isdigit() else 8
+        recs = sorted(kb.load(), key=lambda r: (r.get("source", {}).get("captured") or "", r["id"]), reverse=True)[:n]
+        for r in recs:
+            src = r.get("source", {})
+            print(f"{src.get('captured', '?')} · {src.get('title') or r['id']}  [{r['id']}]  r{r.get('relevance', '-')}")
+            for line in (r.get("lessons") or []) + [f"(confirms) {c}" for c in r.get("confirms") or []]:
+                print(f"  - {line}")
+        print(f"\n{len(recs)} newest of {len(kb.load())} sources; the lessons live in trends/brain/<page>.md")
     elif a.action == "stats":
         print(kb.stats(a.since or 90))
         print(kb.brain_usage()[0])
@@ -416,6 +425,75 @@ def cmd_kb(a):
     else:
         print(kb.BRAIN.read_text() if kb.BRAIN.exists() else "no trends/BRAIN.md yet")
         print(f"\n({len(kb.load())} sources learned (trends/SOURCES.md); {kb.brain_usage()[0]}; ./vtk kb search | stats | show <id>)")
+
+
+def cmd_publish(a):
+    from . import publish as pub
+    try:
+        if a.accounts or not a.post:
+            b = a.brand or brandmod.default_brand()
+            cfg = pub.brand_cfg(b)
+            rows = pub.accounts(cfg["brand_id"])
+            print(f"brand '{b}' (SocialAPI {cfg['brand_id']}): {len(rows)} connected account(s)")
+            for r in rows:
+                page = f"  (page: {r['page_name']})" if r.get("page_name") else ""
+                print(f"  {r['platform']:10s} @{r.get('username') or r.get('name')}{page}  {r.get('status')}  {r['id']}")
+            want = set(cfg.get("platforms") or [])
+            missing = sorted(want - {r["platform"] for r in rows})
+            if missing:
+                print(f"  ! in publish.platforms but not connected: {', '.join(missing)}")
+            return
+        if a.go:
+            _, _, lines = pub.go(a.post)
+        elif a.status:
+            _, _, lines = pub.status(a.post)
+        elif a.metrics:
+            _, _, lines = pub.metrics(a.post)
+        elif a.retry:
+            _, _, lines = pub.retry(a.post)
+        else:
+            _, _, lines = pub.prepare(a.post)
+            lines.append(f"nothing is public yet. To post it: ./vtk publish {a.post} --go")
+        print("\n".join(lines))
+    except pub.PublishError as e:
+        print(f"x {e}")
+        sys.exit(1)
+
+
+def cmd_eleven(a):
+    from . import elevenlabs as el
+    try:
+        if a.action == "credits":
+            lines = el.credits()
+        elif a.action == "models":
+            lines = el.models()
+        elif a.action == "voices":
+            lines = el.voices(search=a.search, library=a.library, gender=a.gender, age=a.age, accent=a.accent,
+                              use_case=a.use_case)
+        elif a.action == "add":
+            if len(a.args) != 2 or not a.name:
+                raise el.ElevenError("add <public_owner_id> <voice_id> --name \"Name\" (ids from: voices --library)")
+            lines = [f"added '{a.name}': {el.add_voice(a.args[0], a.args[1], a.name)}"]
+        elif a.action == "say":
+            if not a.args or not a.voice:
+                raise el.ElevenError('say "text" --voice <name|id>')
+            files = el.say(" ".join(a.args), a.voice, takes=a.takes, model=a.model, stability=a.stability,
+                           similarity=a.similarity, style=a.style, speed=a.speed, seed=a.seed, language=a.language,
+                           out=a.out)
+            lines = [f"  {f}" for f in files] + ["check the words: ./vtk voiceover <file>"]
+        elif a.action == "music":
+            files = el.music(prompt=" ".join(a.args) or None, duration=a.duration, plan=a.plan, takes=a.takes,
+                             instrumental=not a.vocals, out=a.out)
+            lines = [f"  {f}" for f in files] + ["tempo / beats: ./vtk audio <file>"]
+        elif a.action == "sfx":
+            if not a.args:
+                raise el.ElevenError('sfx "what it sounds like" [--duration s]')
+            files = el.sfx(" ".join(a.args), duration=a.duration, takes=a.takes, out=a.out)
+            lines = [f"  {f}" for f in files]
+        print("\n".join(lines))
+    except el.ElevenError as e:
+        print(f"x {e}")
+        sys.exit(1)
 
 
 def cmd_ideas(a):
@@ -570,10 +648,10 @@ def main(argv=None):
     s.add_argument("--refresh", action="store_true", help="channel: list the channel again instead of the cached list")
     s.add_argument("--again", action="store_true", help="learn a link again even if it was learned before")
     s.set_defaults(fn=cmd_learn)
-    s = sub.add_parser("kb", help="the brain (trends knowledge base): (brain) | search <words> | stats | show <id> | commit <id> | remove <id> | "
+    s = sub.add_parser("kb", help="the brain (trends knowledge base): (brain) | recent [N] | search <words> | stats | show <id> | commit <id> | remove <id> | "
                                   "clean | export")
     s.add_argument("action", nargs="?", default="brain",
-                   choices=["brain", "playbook", "search", "stats", "show", "commit", "remove", "clean", "export"])
+                   choices=["brain", "playbook", "recent", "search", "stats", "show", "commit", "remove", "clean", "export"])
     s.add_argument("arg", nargs="?")
     s.add_argument("--format")
     s.add_argument("--kind")
@@ -598,11 +676,47 @@ def main(argv=None):
     s.add_argument("--from", dest="from_file", help="YAML file with the full idea (beats, narration, recordings...)")
     s.add_argument("--out")
     s.set_defaults(fn=cmd_ideas)
+    s = sub.add_parser("publish", help="post a reel / carousel through SocialAPI: <post.yaml> saves a private draft, "
+                                       "--go publishes (or schedules) it, --status, --metrics; --accounts lists accounts")
+    s.add_argument("post", nargs="?", help="post.yaml (media, caption, platforms, schedule, idea...)")
+    s.add_argument("--go", action="store_true", help="publish the prepared draft now, or schedule it (post.yaml schedule:)")
+    s.add_argument("--status", action="store_true", help="per-platform status + links (also into the ideas backlog)")
+    s.add_argument("--metrics", action="store_true", help="views / likes / comments / shares / saves -> ideas backlog")
+    s.add_argument("--retry", action="store_true", help="re-send only the platforms that failed")
+    s.add_argument("--accounts", action="store_true", help="list the brand's connected accounts")
+    s.add_argument("--brand", help="brand for --accounts (default: the workspace's)")
+    s.set_defaults(fn=cmd_publish)
+    s = sub.add_parser("eleven", help="ElevenLabs: say \"text\" --voice v (voice-over takes) | music \"prompt\" --duration s "
+                                      "| --plan plan.yaml | sfx \"text\" | voices [--library] | add | models | credits")
+    s.add_argument("action", choices=["say", "music", "sfx", "voices", "add", "models", "credits"])
+    s.add_argument("args", nargs="*", help="the text / prompt (say, music, sfx) or <public_owner_id> <voice_id> (add)")
+    s.add_argument("--voice", help="say: a voice name in the account (unique prefix ok) or a voice id")
+    s.add_argument("--takes", type=int, default=2, help="how many takes (files _A, _B...; default 2)")
+    s.add_argument("--model", help="say: TTS model id (default: the newest v4/v3 model in the account)")
+    s.add_argument("--stability", default="creative", help="say: creative | natural | robust (or 0-1)")
+    s.add_argument("--similarity", type=float, default=0.75)
+    s.add_argument("--style", type=float, help="say: style exaggeration 0-1 (models that support it)")
+    s.add_argument("--speed", type=float, help="say: 0.7-1.2")
+    s.add_argument("--seed", type=int)
+    s.add_argument("--language", help="say: ISO code, e.g. en")
+    s.add_argument("--duration", type=float, help="music / sfx: seconds")
+    s.add_argument("--plan", help="music: composition plan YAML (styles + timed sections, see toolkit/elevenlabs.py)")
+    s.add_argument("--vocals", action="store_true", help="music: allow vocals (default instrumental)")
+    s.add_argument("--search", help="voices: search words")
+    s.add_argument("--library", action="store_true", help="voices: the shared Voice Library instead of the account")
+    s.add_argument("--gender")
+    s.add_argument("--age", help="young | middle_aged | old")
+    s.add_argument("--accent", help="e.g. american")
+    s.add_argument("--use-case", dest="use_case", help="e.g. conversational, narrative_story, characters_animation")
+    s.add_argument("--name", help="add: the name the voice gets in the account")
+    s.add_argument("--out", help="file stem or folder (default inbox/<slug>)")
+    s.set_defaults(fn=cmd_eleven)
     s = sub.add_parser("sfx", help="(re)generate brand/sfx sounds")
     s.set_defaults(fn=cmd_sfx)
     s = sub.add_parser("music", help="generate an original music bed WAV")
     s.add_argument("--duration", type=float, required=True)
-    s.add_argument("--bpm", type=float, default=120)
+    s.add_argument("--bpm", type=float, help="default: the mood's tempo (chill 120, story 84, teach 92, vlog 88, emotional 72, energetic 140)")
+    s.add_argument("--mood", default="chill", choices=["chill", "story", "teach", "vlog", "emotional", "energetic"])
     s.add_argument("--key", default="D")
     s.add_argument("--drop", type=float, default=0.0, help="time the groove starts (pad intro before)")
     s.add_argument("--resolve", type=float, help="time of the final chord (default: last bar before the end)")
