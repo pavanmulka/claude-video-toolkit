@@ -23,3 +23,11 @@ CLAUDE.md, which is always loaded, already says them.
   changes, one riser into the reveal, a soft chime on "saved". Business accounts: original audio (VO + our generated
   bed) or the platform's commercial library, never chart songs. [baseline]
 - A brand's own example of the 3-beat hook belongs in its MARKETING.md hook table, not the playbook. [828K: lmxpbp]
+
+## 2026-10-20: merged into hooks "Also works" (page at cap)
+- **Belief-breaking question**: ask the viewer to guess what everyone believes ("How long does it take to find X?"),
+  give the surprising real answer, then "Can I show you?" and prove it on screen. *The guess commits the viewer; the
+  gap between their number and yours is the loop.* No proof on screen = no belief broken. [311K: m2oygu]
+- Also works: a specific number, a direct command, a contrarian line (only if the video proves it). **Avoid** "Hi
+  everyone", "Okay so…", "Have you ever wondered…", and opening on the app name or logo. [baseline; a number in 32% of top hooks: jennyhoyos]
+- Hook text: 6–10 words, inside the 3:4 profile-grid crop, and the VO says it too. [baseline; jennyhoyos]

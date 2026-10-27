@@ -19,3 +19,20 @@ Part of the brain (start at `trends/BRAIN.md`). One lesson per line: the lesson,
 - **AI voice**: label realistic AI audio on TikTok and Meta; most viewers accept it when disclosed, but AI-made ads
   underperform, so keep the script human-written, the voice natural and brisk, the mix warm.
   [[IAB, Jan 2026](https://www.iab.com/insights/the-ai-gap-widens/); [HBR, Sept 2026](https://hbr.org/2026/09/research-ai-generated-ads-perform-worse-than-human-made-ones-even-when-customers-cant-tell-them-apart)]
+- **Join every beat with "but" or "therefore", never "and then"** (the South Park rule): write the beats, put a word
+  between each; where "and then" fits, the viewer gets more detail, not a new question: add a complication or cut it.
+  A list is "and then" by nature, so break it halfway (a surprise item, a stall, "most people miss this one").
+  [2.9M: t5z-q1; jennyhoyos]
+- **Jagged rhythm**: short, short, then one long line; same-length lines drone and viewers churn (Gary Provost). One
+  sentence per script line, so the right edge should look jagged. Generate / record one line at a time to keep the
+  energy up to the last word. The hook talks to one person ("you"); the body of an emotional reel describes a person
+  instead (next line). [2.9M: t5z-q1; 257K: g-6tiu]
+- **Describe, don't lecture** (one-person emotional reels): inside the same creator the hit says "you" far less than
+  their average post (0.5 vs 3.1, 1.6 vs 3.5, 2.3 vs 7.0 per 100 words) and paints a person ("she's not angry, she's
+  overloaded", "my dad tells the same story"); "you" arrives at the end. Hits also read simpler (reading ease 81 vs 75)
+  and hold one ~1 s pause right before the turn. [study of 43 hits vs 149 posts, 2026-10-26: narration-study-1026]
+- **The lines people quote**: open on a line people hear at home, in quotes ("just tell me what to do"); list tiny real
+  things one beat each and end the list on the feeling; give ONE kind reframe ("the crumbs aren't the problem", "it's a
+  bid for connection"); never make a villain (defend the other side once); one real detail beats a claim (a number, a
+  time, a name); end with a question about the viewer's own life. Top comments quote the reframe or the home line
+  (60K and 106K likes on one quoted line). Delivery = conviction, not hype and not soft. [3.8M; 4.7M; 2.7M: narration-study-1026]

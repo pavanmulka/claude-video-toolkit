@@ -15,3 +15,25 @@ Part of the brain (start at `trends/BRAIN.md`). One lesson per line: the lesson,
 - **Text in AI video**: keep hooks, captions and labels in the editor (exact fonts, safe zones, A/B-able, no typos); let
   the AI render only text that lives in the scene (a sign, one word on a form, a sticky note), 1–2 words max, and
   never a product's UI. The models can render timed text, but it can't be edited or tested afterwards. [388K: wj8sgb]
+- **Depth type, not flat captions**: giant words *behind* the subject (the speaker, a hand holding the phone) and 3D
+  block letters (gradient face + solid extrusion + dark outline) read as "edited", not templated; flat white pills on
+  every video now look routine. Tools: `behind: subject|person`, style `extrude`. One depth moment per section, the
+  keyword still readable around the subject. [3.8K views, 35K on IG: fb 1922283]
+- **Flat stage, ink type, one marker colour** (premium B2B explainer): light grey stage, black medium-weight geometric
+  sans in sentence case, the key number underlined with a thick marker stroke in one bright accent that also colours the
+  props (tiles, a door). *Calm and credible, and every use of the accent points at the claim.* Tools: theme
+  `kinetic_light`, styles `stat` (`**54%**` gets the underline), `stat_label`, `plain_title`. Carousels too: one page colour on
+  every slide, ink + one accent for the answer words. [screenrecording-10-08; demz4c]
+- **Contrast decides where the eye lands, so give it to the one word that matters**: the eye goes to the strongest
+  contrast in the frame before the brain reads anything. Put the key word in the colour that fights the background most
+  (red on a green set, yellow on blue sky, a bright marker block under black type on a pale page); when no colour
+  contrasts, use white; grey or black on mid tones reads "meh". Brightness counts too: on a screen pure yellow reads ~93%
+  as bright as white, red ~21%, blue ~7%, so a yellow marker word is read before the face; on a grey stage give colour
+  only to the subject (one yellow bus on a grey street). Squint at the frame: the word still visible is the one people
+  read first. Tools: accent / `highlight` marker per background, `accent_box`. [186K: fb 2547005; 5.1K likes: dechlq]
+- **Text that performs the line**: the words appear as they are spoken, stacked in the empty space above the subject,
+  sized by meaning (connector words small: "if it were", "but", "or"; the key word huge, condensed heavy caps) and
+  styled like what they say (YELLOW in yellow, GRAY in grey); the speaker points or looks up at them. *The text is the
+  demo, so a muted viewer gets the lesson and a listening one gets it twice.* Tools: `text_anim: {by: word}` timed to
+  the VO, one overlay per size, `Bebas Neue` / `Anton` / `hook`. [186K: fb 2547005]
+
