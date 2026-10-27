@@ -1,0 +1,44 @@
+# Beat-edit shape reveals (`reveal:`), no footage needed: ./vtk render examples/beat_reveal.yaml --preview
+# The CapCut "beat edit" mechanism (trends: fb 2492939): one section per bar, the picture goes black with one small
+# shape on the music's gap, the shapes burst on the bar's hit and balloon to the full picture by beat 3; the text lands
+# with the hit (text_anim.delay = the reveal's lead). Generated music at 120 BPM: a bar every 2.0 s, so every section
+# after the first starts 0.3 s before its bar (1.7, 3.7, 5.7, ...). With a real song, read the bar starts from
+# `./vtk audio <song>` and start the music on a downbeat (audio.music.offset).
+version: 1
+name: beat-reveal-demo
+output: {file: beat_reveal_demo.mp4, aspect: "9:16", fps: 30}
+defaults:
+  text_style: title
+  text_pos: ["50%", "22%"]
+  text_anim: {by: word, effect: rise, stagger: 0.04, in: 0.3, delay: 0.3, motion_blur: 1}
+
+timeline:
+  - section: hook
+    text: "ONE SHOT\nPER **BAR**"
+    text_style: hook
+    text_anim: {effect: none, delay: 0}
+    clips: [{color: transparent, dur: 1.7}]
+    background: {type: mesh}
+  - section: circles
+    text: "Black on the **gap.**"
+    clips: [{color: transparent, dur: 2.0, reveal: {shape: circle, count: 5, pattern: row, lead: 0.3}}]
+    background: {type: aurora}
+  - section: squircles
+    text: "Burst on the **hit.**"
+    clips: [{color: transparent, dur: 2.0, reveal: {shape: squircle, count: 4, pattern: grid, lead: 0.3}}]
+    background: {type: rays}
+  - section: diamonds
+    text: "Full by **beat 3.**"
+    clips: [{color: transparent, dur: 2.0, reveal: {shape: diamond, count: 5, pattern: row, angle: -35, lead: 0.3}}]
+    background: {type: grid}
+  - section: stars
+    text: "Any **shape.**"
+    clips: [{color: transparent, dur: 2.0, reveal: {shape: star, count: 6, pattern: scatter, seed: 4, lead: 0.3, rotate: 40}}]
+    background: {type: glow}
+  - section: hexagons
+    text: "Any **pattern.**"
+    clips: [{color: transparent, dur: 2.3, reveal: {shape: hexagon, count: 6, pattern: ring, lead: 0.3}}]
+    background: {type: mesh, colors: ["#FF8A5B", "#7B5CFF", "#0FB5AE"]}
+
+audio:
+  music: {generate: {mood: energetic, bpm: 120, seed: 3}, volume: -8, fade_out: 0.6}

@@ -1,0 +1,42 @@
+# Prompt-motion showcase (2026-10-21): the techniques behind the Claude-made motion films on prompt-motion.com, as
+# engine features. No footage, ~9 s. Needs motion/ (Remotion).
+#   ./vtk render examples/prompt_motion.yaml --preview
+# - flood: a shape grows out of a button past every corner, holds its colour a beat, contracts into the next shot
+# - pointer: a cursor (or a touch dot) glides from tap to tap, dips on each press, follows drags, rings on long-presses
+# - liquid_glass: iOS 26 glass text card, the picture behind bends at the rim with chromatic edges
+# - wordmark-squeeze: the name folds into its own full stop, the dot becomes a pill, then it all springs back (loops)
+# - every render scans for one-frame pops (a frame unlike both neighbours) and lists them under warnings
+version: 1
+name: prompt-motion
+brand: default
+theme: airy_light
+output: {file: ../.work/tests/prompt_motion.mp4, aspect: "9:16", fps: 30}
+timeline:
+  - section: hook
+    text: {content: "Every scene grows\nout of the **last one**", style: plain_title, pos: center}
+    text_anim: {effect: none}
+    clips:
+      - {color: transparent, dur: 1.6}
+
+  - section: pointer              # taps on a motion clip use output px; on a recording they use source px
+    text: none
+    clips:
+      - motion: checklist-grid
+        dur: 3.2
+        transition: {type: flood, from: [390, 1040, 300, 110], shape: squircle, color: "#111114", to: [540, 700]}
+        pointer: {style: cursor, size: 1.2}
+        taps: [{at: 0.8, pos: [300, 760]}, {at: 1.5, pos: [760, 1100], hold: 0.6}, {at: 2.4, pos: [300, 1300], drag: [780, 1300]}]
+
+  - section: glass
+    text: {content: "Liquid **glass**", style: {extends: liquid_glass, size: 104}, pos: center}
+    background: {type: aurora}
+    clips:
+      - {color: transparent, dur: 2.0, transition: {type: flood, from: [540, 1300], color: accent, to: [540, 960]}}
+
+  - section: endcard              # the flood lands exactly as the wordmark's black pill (mode return: pill -> dot -> name)
+    text: none
+    clips:
+      - {color: transparent, dur: 2.4, transition: {type: flood, from: [540, 960], color: "#111114", to: [359, 898, 362, 124]}}
+    overlays:
+      - {motion: wordmark-squeeze, props: {name: "Your App", label: "Get the app", mode: return, dotColor: "#111114",
+                                          labelColor: "#FFFFFF"}}

@@ -1,0 +1,42 @@
+# Carousel demo: output.carousel renders one still slide per section (4:5, numbered JPEGs), no video.
+#   ./vtk render examples/carousel_demo.yaml     -> .work/tests/carousel_demo_carousel/carousel_demo_01.jpg ...
+# Each slide is the section's settled moment (85% through it; `slide_at:` seconds picks another). Give motion looks
+# `outro: 0` so they are still on screen, and use cuts (no transitions) between slides.
+version: 1
+name: carousel-demo
+brand: default
+theme: kinetic_light
+output: {file: ../.work/tests/carousel_demo.mp4, aspect: "4:5", carousel: {format: jpg, quality: 93}}
+timeline:
+  - section: cover                # slide 1 = the hook (the cover in the grid)
+    text: {content: "5 moments your family\n**loses access**", style: {extends: plain_title, size: 96}, pos: center}
+    text_anim: {effect: none}
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "save this", style: stat_label, pos: ["50%", "72%"]}
+  - section: hook-2               # slide 2 = the second hook (IG re-shows skipped carousels from slide 2)
+    text: {content: "Number 3 catches\n**everyone**.", style: plain_title, pos: center}
+    text_anim: {effect: none}
+    clips:
+      - {color: transparent, dur: 1.0}
+  - section: fact-1
+    text: none
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "**18**", style: stat, pos: ["50%", "40%"]}
+      - {text: "the birthday you stop seeing\ntheir medical records", style: stat_label, pos: ["50%", "54%"]}
+  - section: fact-2
+    text: none
+    clips:
+      - {color: transparent, dur: 1.4}
+    overlays:
+      - {motion: stat-split, props: {entry: push, exit: fade, outro: 0, items: [{value: 6, label: "months left: OK", icon: "✅"}, {value: 5, label: "months left: denied", icon: "⛔"}], format: integer}}
+  - section: cta
+    text: {content: "Put it all in **one place**.", style: plain_title, pos: ["50%", "42%"]}
+    text_anim: {effect: none}
+    clips:
+      - {color: transparent, dur: 2.2}
+    overlays:
+      - {motion: logo-reveal, props: {name: "Your App", tagline: "free to start", y: 0.6, outro: 0}}

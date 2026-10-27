@@ -1,0 +1,49 @@
+# __NAME__ — created __DATE__ from template "carousel" (swipe post: cover hook, second hook, one fact per slide, CTA; 4:5 slides)
+# Renders numbered JPEG slides (no video): ./vtk render <spec> -> inbox/__NAME___carousel/__NAME___01.jpg ...
+# Post it: post.yaml `media: __NAME___carousel` (the folder). Slide 1 = the grid cover; slide 2 = a second hook
+# (Instagram re-shows skipped carousels from slide 2); one fact per slide with a real screen; last slide = the CTA.
+# Screens: add a slide with `- {image: screens/record.png, dur: 1.0, layout: {type: iphone, style: full, height: "62%", center_y: "60%"}}`.
+version: 1
+name: __NAME__
+brand: __BRAND__
+theme: kinetic_light
+output: {file: __NAME__.mp4, aspect: "4:5", carousel: {format: jpg, quality: 93}}
+defaults: {text_anim: {effect: none}}
+timeline:
+  - section: cover
+    text: {content: "5 things nobody tells you\nabout **your topic**", style: {extends: plain_title, size: 96}, pos: center}
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "save this", style: stat_label, pos: ["50%", "74%"]}
+  - section: hook-2
+    text: {content: "Number 3 catches\n**everyone**.", style: plain_title, pos: center}
+    clips:
+      - {color: transparent, dur: 1.0}
+  - section: fact-1
+    text: none
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "**1**", style: stat, pos: ["50%", "36%"]}
+      - {text: "The first fact,\nin one short line.", style: stat_label, pos: ["50%", "50%"]}
+  - section: fact-2
+    text: none
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "**2**", style: stat, pos: ["50%", "36%"]}
+      - {text: "The second fact.", style: stat_label, pos: ["50%", "50%"]}
+  - section: fact-3
+    text: none
+    clips:
+      - {color: transparent, dur: 1.0}
+    overlays:
+      - {text: "**3**", style: stat, pos: ["50%", "36%"]}
+      - {text: "The one that catches everyone.", style: stat_label, pos: ["50%", "50%"]}
+  - section: cta
+    text: {content: "Keep it all in **one place**.", style: plain_title, pos: ["50%", "40%"]}
+    clips:
+      - {color: transparent, dur: 2.2}
+    overlays:
+      - {motion: logo-reveal, props: {name: "Your App", y: 0.58, outro: 0}}

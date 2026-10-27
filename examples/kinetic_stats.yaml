@@ -1,0 +1,118 @@
+# Kinetic stat explainer showcase: no footage, ~30 s. Every motion-graphics tool learned from a B2B stat ad
+# (2026-10-08): flat light stage, whips with motion blur, a crowd filling the frame, an outline drawing itself,
+# split panels, a giant number slam, counting ranges, swapping words, flying props, a photo card cycle, floating
+# cards, sticker tiles, a door fly-through and a logo build. Needs motion/ (Remotion).
+#   ./vtk render examples/kinetic_stats.yaml --preview
+# The copy talks about the toolkit itself, so every number on screen is true.
+version: 1
+name: kinetic-stats
+brand: default
+theme: kinetic_light              # flat #F2F2F2 stage, ink type, accent marker, defaults.motion_blur: 1, whip_up text in/out
+output: {file: ../.work/tests/kinetic_stats.mp4, aspect: "9:16", fps: 30}
+timeline:
+  - section: hook                 # frame 0 = the cover: full text, no entrance; it whips up and out
+    text: {content: "Here's what your\nedit is missing…", style: plain_title, pos: center}
+    text_anim: {effect: none, out: 0.22, out_effect: whip_up}
+    clips:
+      - {color: transparent, dur: 1.6}
+
+  - section: crowd                # a crowd floods the frame behind white line boxes, then everything collapses into a point
+    text: none                    # section text draws under overlays: the headline is an overlay so it sits on the crowd
+    clips:
+      - {color: transparent, dur: 2.2}
+    overlays:
+      - {motion: crowd-fill, start: 0.1, props: {fill: 0.75, accelerate: 2.4, outro: 0}}
+      - {text: "Graphics that\n**fill the frame**", style: {extends: native_pill, size: 84}, pos: center,
+         anim: {in: whip_up, dur: 0.3}}
+
+  - section: outline
+    text: {content: "Outlines that\n**draw themselves**", style: plain_title, pos: ["50%", "24%"]}
+    clips:
+      - {color: transparent, dur: 2.4, transition: {type: shrink, dur: 0.4}}    # texts + overlays shrink with their picture
+    overlays:
+      - {motion: line-draw, props: {shape: house, color: "#111114", strokeWidth: 3, size: 0.74, y: 0.55, drawDuration: 0.7,
+                                    dots: 46, dotStyle: phone, dotSize: 26, dotStagger: 0.02, outro: 0}}
+
+  - section: split                # two panels push in while both shares count
+    text: none
+    clips:
+      - {color: transparent, dur: 2.6}
+    overlays:
+      - {motion: stat-split, props: {entry: push, stagger: 0.4, countDuration: 1.0, exit: split, outro: 0.3,
+                                     items: [{value: 48, label: "Text", icon: "✍️"}, {value: 52, label: "Motion", icon: "🎬"}]}}
+
+  - section: slam                 # a giant number slams down to size with zoom streaks, the label whips in, the marker draws
+    text: none
+    clips:
+      - {color: transparent, dur: 2.1}
+    overlays:
+      - {text: "**100%**", style: stat, pos: ["50%", "45%"], anim: {in: mega, dur: 0.5, out: whip_left, out_dur: 0.22}}
+      - {text: "from one YAML file", style: stat_label, pos: ["50%", "53.5%"], start: 0.4,
+         anim: {in: whip_left, dur: 0.3, out: whip_left, out_dur: 0.22}}
+
+  - section: range                # two numbers count at once into the real range
+    text: none
+    clips:
+      - {color: transparent, dur: 2.2}
+    overlays:
+      - {counter: {text: "{} to {}", values: [[5, 15], [60, 30]], dur: 1.0, delay: 0.25}, style: stat, pos: ["50%", "45%"],
+         anim: {in: whip_left, dur: 0.3, out: whip_left, out_dur: 0.22}}
+      - {text: "seconds is the sweet spot", style: stat_label, pos: ["50%", "53.5%"], anim: {in: whip_left, dur: 0.3, out: whip_left, out_dur: 0.22}}
+
+  - section: words                # shared words stay, new ones whip in, the emoji grows out of a point; then a prop stream
+    text: none
+    clips:
+      - {color: transparent, dur: 2.8}
+    overlays:
+      - {motion: text-swap, props: {phrases: ["Ship", "Ship 🚀 faster", "Ship every week"], size: 120, y: 0.47}}
+      - {motion: image-rain, start: 1.5, dur: 1.3, props: {mode: stream, shape: confetti, origin: [0.08, 0.9], direction: -55,
+                                                            spread: 26, rate: 60, emit: 0.7, outro: 0}}
+
+  - section: photos               # a photo card grows out of a point with selection handles, swaps photos, shrinks away
+    text: none
+    clips:
+      - {color: transparent, dur: 2.8}
+    overlays:
+      - {motion: photo-cycle, props: {interval: 0.5}}
+
+  - section: cards                # cards fly in from the edges with blur and drift around the number
+    text: none
+    clips:
+      - {color: transparent, dur: 2.6}
+    overlays:
+      - {motion: float-cards, props: {count: 8}}
+      - {counter: {text: "**{}**", values: [[0, 10]], dur: 0.9, delay: 0.3}, style: stat, pos: ["50%", "46%"], anim: {in: mega, dur: 0.45}}
+      - {text: "new motion looks", style: stat_label, pos: ["50%", "54.5%"], start: 0.35, anim: {in: whip_left, dur: 0.3}}
+
+  - section: tiles                # sticker tiles slide in around the edges, then confetti rains
+    text: none
+    clips:
+      - {color: transparent, dur: 2.6, transition: {type: whip, dir: up, dur: 0.24, carry: true}}
+    overlays:
+      - {motion: sticker-tiles, props: {word: "Go"}}
+      - {counter: {text: "**{}**", values: [[9, 1]], dur: 0.8, delay: 0.2}, style: stat, pos: ["50%", "46%"], anim: {in: whip_up, dur: 0.3}}
+      - {text: "command renders it", style: stat_label, pos: ["50%", "54.5%"], start: 0.3, anim: {in: whip_up, dur: 0.3}}
+      - {motion: image-rain, start: 1.2, dur: 1.4, props: {mode: rain, shape: confetti, count: 50, outro: 0}}
+
+  - section: door                 # the metaphor ending: the door opens on the punchline, the camera flies through
+    text: none
+    clips:
+      - {color: transparent, dur: 3.4}
+    overlays:
+      - {motion: door-reveal, props: {openAt: 1.35, throughAt: 2.55, doorWidth: 0.44}}
+      - {text: "The edit you're\nlooking for", style: plain_title, pos: center, start: 0.15, end: 1.4,
+         anim: {in: blur, dur: 0.3, out: whip_up, out_dur: 0.2}}
+      - {text: "is one spec away", style: plain_title, pos: center, start: 1.45, end: 2.5,
+         anim: {in: whip_up, dur: 0.3, out: fade, out_dur: 0.15}}
+
+  - section: logo
+    text: none
+    clips:
+      - {color: transparent, dur: 2.2}
+    overlays:
+      - {motion: logo-reveal, props: {name: "Video Toolkit", tagline: "spec in, video out", layout: row, logoSize: 120, nameSize: 96}}
+audio:
+  music: {generate: {mood: teach, bpm: 100, key: D, seed: 11}, volume: -6}
+  sfx:
+    - {sound: reveal, at: 24.65, align: peak, volume: -14}     # the door swings open on the punchline
+    - {sound: whoosh, at: 26.0, align: peak, volume: -16}      # fly-through
