@@ -10,6 +10,7 @@ import {emojiBurst} from './emoji-burst';
 import {endCard} from './end-card';
 import {flowPath} from './flow-path';
 import {hubBeams} from './hub-beams';
+import {flowGraph} from './flow-graph';
 import {lineChart} from './line-chart';
 import {logoStamp} from './logo-stamp';
 import {notificationStack} from './notification-stack';
@@ -56,6 +57,7 @@ export const LOOKS: LookDef[] = [
 	// P3 diagrams + data
 	flowPath,
 	hubBeams,
+	flowGraph,
 	barChart,
 	lineChart,
 	statOrbit,
