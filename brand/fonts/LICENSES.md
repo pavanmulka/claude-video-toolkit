@@ -20,6 +20,8 @@ All fonts in this folder are licensed under the SIL Open Font License 1.1
 - **Caveat**: https://github.com/googlefonts/caveat
 - **Bricolage Grotesque**: https://github.com/ateliertriay/bricolage
 - **Great Vibes**: https://github.com/googlefonts/great-vibes
+- **DM Serif Display**: https://github.com/google/fonts/tree/main/ofl/dmserifdisplay
+- **Fraunces**: https://github.com/google/fonts/tree/main/ofl/fraunces
 
 Static weight files (Family-Weight.ttf) were instanced from the variable fonts with fontTools
 so libass/fontconfig (ffmpeg subtitles) can select weights by name.

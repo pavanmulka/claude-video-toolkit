@@ -113,5 +113,40 @@
   "file": "cabin_hum.wav",
   "peak": 0.0,
   "dur": 12.0
+ },
+ "reveal": {
+  "file": "reveal.wav",
+  "peak": 0.42,
+  "dur": 2.4
+ },
+ "cash": {
+  "file": "cash.wav",
+  "peak": 0.11,
+  "dur": 1.4
+ },
+ "correct": {
+  "file": "correct.wav",
+  "peak": 0.11,
+  "dur": 0.9
+ },
+ "wrong": {
+  "file": "wrong.wav",
+  "peak": 0.0,
+  "dur": 0.55
+ },
+ "riser_metal": {
+  "file": "riser_metal.wav",
+  "peak": 1.6,
+  "dur": 1.6
+ },
+ "scratch": {
+  "file": "scratch.wav",
+  "peak": 0.0,
+  "dur": 0.36
+ },
+ "flash": {
+  "file": "flash.wav",
+  "peak": 0.28,
+  "dur": 0.53
  }
 }

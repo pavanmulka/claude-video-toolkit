@@ -7,6 +7,9 @@ real screen recording into the screen (see CLAUDE.md, Layouts). Sources resolve 
 | plate | place | use with |
 |---|---|---|
 | `hospital_waiting_room.jpg` | ER waiting room at night, teal/plum chairs, vending machine, cold light (1536x2752) | `zoom: 1.0` (text above the phone: pill y 245, captions y 345) |
+| `kitchen_morning.jpg` | bright family kitchen counter, morning daylight (768x1376) | `zoom: 1.0` |
+| `chicago_apartment.jpg` | high-rise apartment desk by a window, snowy city skyline, grey sweater + watch, coffee mug, cold daylight (768x1376) | `zoom: 1.0`; an overseas-family side of a story |
+| `airport_terminal_bench.jpg` | airport terminal seating, big windows, a teal suitcase + straw hat out of focus, cool daylight (768x1376) | `zoom: 1.1` (text above the phone at y 13% / 18%) |
 
 **Stills beat video plates.** AI hand motion looks fake and makes small UI text shimmer; a still plate is rock steady.
 Push-in (`push: [1.0, 1.04]`) only with `zoom` ≥ 1.15, where the plate has margin around the frame.

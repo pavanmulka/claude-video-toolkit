@@ -111,6 +111,25 @@ lofi:                     # grainy film look, warm and faded, typewriter text (a
   defaults:
     text_anim: {by: letter, effect: type, stagger: 0.03, caret: true}
 
+kinetic_light:            # flat light-grey stage, ink type, one bright marker colour, every move whips with motion blur
+  colors: {text: "#111114", shadow: "#9AA0AE"}
+  background: {type: color, color: "#F2F2F2"}
+  text_styles:
+    title: {color: "#111114", accent: accent_dark, shadow: null}
+    clean_title: {color: "#111114", accent: accent_dark, shadow: null}
+    plain_title: {color: "#111114", accent: accent_dark}
+    body: {color: "#111114", accent: accent_dark, shadow: null}
+    hook: {color: "#111114", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: null}
+    kinetic: {color: "#111114", accent: accent_dark, stroke: {width: 0, color: "#000000"}, shadow: null}
+    counter: {color: "#111114", accent: accent_dark, shadow: null}
+    stat: {color: "#111114", accent: "#111114"}
+    stat_label: {color: "#111114", accent: accent_dark}
+    native_pill: {shadow: {blur: 10, opacity: 0.12, dy: 3, color: "#000000"}}
+  marks: {color: accent}
+  defaults:
+    motion_blur: 1
+    text_anim: {effect: whip_up, in: 0.3, out: 0.22, out_effect: whip_up}
+
 midnight_plum:            # plum night stage with teal floor light
   background: {type: glow, color: "#0B0412", accent: "#6B2C7A", accent2: accent, stars: true, stars_amount: 0.6}
   look: {vignette: 0.22, bloom: 0.08}
