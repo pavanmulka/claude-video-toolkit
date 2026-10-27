@@ -1,221 +1,123 @@
-# 🎬 Claude Video Toolkit
+# Claude Video Toolkit
 
-**A video editor you talk to.** Put your phone screen recordings in a folder, tell Claude what video you want, and
-Claude makes a ready-to-post TikTok, Reel or Short.
+[![CI](https://github.com/pavanmulka/claude-video-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/pavanmulka/claude-video-toolkit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## ✨ What it does
+**A spec-driven short-video engine, operated by an AI agent.** Every video is a YAML spec; a Python + FFmpeg engine
+renders it frame by frame into a finished MP4 (captions, voice-over, music, motion graphics), and Claude Code runs the
+whole workflow from idea to publish, with a human approval step before anything is made and before anything is posted.
 
-- 🎬 **A video editor inside Claude.** You say what you want in normal words, and it edits the video for you.
-- 📱 **It uses your real recordings.** People see your real app working. Nothing is fake.
-- ✨ **It adds the pro stuff for you.** An iPhone frame, captions that pop up word by word with the voice, zoom-ins on
-  important taps, sounds, music and a "download" screen at the end.
-- 📂 **One folder does everything.** It's called `inbox`. You put your files in, and the finished video comes back out
-  there.
-- 🧾 **What goes in `inbox` (only if you want).** Screen recordings from your phone, other videos or photos, a
-  voice-over (MP3), or a video whose style you like, so Claude can copy its speed (not its content).
-- 💬 **How you ask.** "Make a 20-second TikTok showing how to add a card. Files are in inbox." That's it.
-- 📝 **Claude plans first.** It shows you what happens at each second. You say "ok" or change it, then it makes the
-  video. Want a fix? Say "bigger text" and you get version 2.
-- 🧹 **Next video.** Post it, then empty `inbox`. Every video's recipe is saved, so you can remake it later.
-- 🅰️ **Empty `inbox`? It still works.** It can make text and animation videos, like tips, lists or big numbers, with
-  no recordings at all.
-- 🔗 **Saw a TikTok you love?** Send Claude the link. It learns why it works (the start, the speed, the sounds) and
-  uses that in your next videos.
+<p align="center"><img src="docs/media/under-the-hood.gif" width="360" alt="The toolkit's pipeline as a node graph, rendered by the toolkit itself"></p>
+<p align="center"><sub>The pipeline below, animated. This clip was rendered by the toolkit from a spec.</sub></p>
 
-## 🗺️ How a video gets made
-
-```mermaid
-flowchart TD
-    A["Think of a video idea"] --> Q{"Have clips, photos<br/>or a voice-over?"}
-    Q -->|yes| B["Put them in the inbox folder"]
-    Q -->|no| C
-    B --> C["Tell Claude what video you want"]
-    C --> D["Claude shows a plan"]
-    D -->|change it| C
-    D -->|ok| E["Claude makes the video"]
-    E --> F["Watch it in the inbox folder"]
-    F -->|fix something| C
-    F -->|love it| G["Post it"]
-    G --> H["Empty the inbox folder"]
-    H -->|next video| A
-```
-
-## 📂 What your `inbox` folder looks like
-
-Before (you put in whatever you have, all of it is optional):
-
-```
-inbox/
-├── add_card.mov          ← a screen recording from your phone
-├── search.mov            ← another one
-├── voiceover.mp3         ← optional: a voice (made in ElevenLabs, or your own)
-└── style_i_like.mp4      ← optional: a video whose speed you like
-```
-
-After (Claude puts these in):
-
-```
-inbox/
-├── MyVideo_v1.mp4        ← your video, ready to post
-└── MyVideo_v1.srt        ← the captions as a file (some apps let you upload it)
-```
-
-## 🧠 The brain: it learns from videos you like
-
-- 🔗 **Share any video link with Claude** (TikTok, YouTube, Instagram) and say "learn from this".
-- 👀 **Claude watches it**: the words, the pictures, even what the sound is doing.
-- ✍️ **Only new lessons are kept**, in plain words, in `trends/BRAIN.md` and its topic pages (`trends/brain/`).
-- ♻️ **Same lesson again?** It just becomes stronger proof. The same link twice is skipped.
-- 📈 **Every video you share makes every future video smarter**: Claude reads the brain before planning each one.
-- 🔒 **Your own brand's plans stay private** in `workspace/`; the brain only keeps lessons that help anyone.
-
-## 🤖 Using AI video generators too?
-
-AI video generators (you type a sentence, and they make a short clip) are great for shots you can't film, like a phone
-floating in space. But they only make a few seconds at a time, they can't show your real app, and words in their clips
-often come out scrambled. This toolkit is the editor: it takes that AI shot plus your real phone recording, cuts out the
-weird parts, and adds the voice, captions, sounds and ending. The AI makes the wow moment, and the toolkit turns it into
-a whole video people watch to the end. Put the AI clip in `inbox` like any other video.
+## How it works
 
 ```mermaid
 flowchart LR
-    A["Idea: open with a phone<br/>floating in space"] --> B["AI video generator<br/>makes the space shot"]
-    B --> C["Toolkit trims it and<br/>cuts out the weird parts"]
-    D["Your phone: a real recording<br/>of your app"] --> E
-    C --> E["Toolkit puts it all together:<br/>voice, captions, sounds, end card"]
-    E --> F["Finished video,<br/>ready to post"]
+    A["Idea, script or<br/>reference video"] --> B["Claude Code<br/>(reads CLAUDE.md, runs ./vtk)"]
+    B --> C["Research + knowledge base"]
+    C --> D{"Plan<br/>human approval"}
+    D --> E["Assets: voice (ElevenLabs API),<br/>screen recordings, motion layers (Remotion)"]
+    E --> F["YAML spec"]
+    F --> G["Render engine<br/>validate · plan · composite · encode · mix"]
+    G --> H["Automated checks"]
+    H --> I{"Final file<br/>human approval"}
+    I --> J["Publish (SocialAPI)<br/>private draft, then --go"]
 ```
 
-## 🛠️ Setup (one time, about 1 hour)
+A new video needs a new spec, not new code. When a video needs something the spec can't express, it is added to the
+engine as a general, documented option (a new layout, animation, motion look or command) and becomes available to every
+future spec.
 
-**You need:** a Mac · internet · 5 GB of free space · a Claude **Pro or Max** plan (the free plan doesn't include
-Claude Code) · a free GitHub account.
+## A spec
 
-**How to follow the steps:** every grey box is something to copy. Paste it into Terminal and press **Enter**. Wait
-until it finishes before you paste the next box.
+```yaml
+version: 1
+name: demo
+theme: deep_space
+output: {aspect: "9:16", fps: 30}
+timeline:
+  - section: hook
+    text: {content: "EVERY VIDEO\nIS A **SPEC.**", style: kinetic, pos: center}
+    text_anim: {by: word, effect: stamp, stagger: 0.12, ease: spring}
+    clips:
+      - {color: transparent, dur: 2.6}
+  - section: count
+    text: {content: "Rendered from **one YAML file**", style: clean_title, pos: upper_third}
+    clips:
+      - {color: transparent, dur: 2.8, transition: {type: whip, dir: left}}
+    overlays:
+      - {counter: {from: 0, to: 100, suffix: "%", dur: 1.2}, style: counter, pos: ["50%", "52%"], anim: pop}
+audio:
+  music: {generate: {bpm: 120, key: D, seed: 7}, volume: -8}
+```
 
-### Step 1: Open Terminal
+`./vtk render examples/demo.yaml --preview` turns it into an MP4 with no footage at all. Real videos add screen
+recordings, a voice-over and word-synced captions: see [`CLAUDE.md`](CLAUDE.md) for the full spec reference.
 
-Press **⌘ Command + Space**, type `Terminal`, press **Enter**. A window with text opens: this is where you paste.
+## Engine design
 
-### Step 2: Install Homebrew (it installs apps for you)
+| stage | what happens | where |
+|---|---|---|
+| **Validate** | YAML schema check; every error names its exact field path and suggests a fix (`timeline[0].clips[0].sped: unknown field (did you mean 'speed'?)`) | `toolkit/spec.py` |
+| **Plan** | the timeline becomes a frame-exact plan: which source frame shows at each output frame (speed ramps, holds, transitions, beat-snapped montages) | `toolkit/timeline.py`, `montage.py` |
+| **Composite** | every frame drawn in Python (NumPy, OpenCV, Pillow): drawn iPhone / Android devices, 3D camera tilt via perspective warp, kinetic text, marks, taps | `toolkit/compositor.py`, `device.py`, `text.py` |
+| **Subject masks** | Apple Vision (a small Swift helper, on device) cuts out people and hands so text can sit behind them | `toolkit/subject.py`, `toolkit/native/` |
+| **Phone plates** | a recording warped into filmed green-screen phone footage; the screen's 4 corners are tracked every frame | `toolkit/screenplate.py` |
+| **Motion graphics** | 50+ React components (Remotion) rendered as cached layers, props validated with zod | `motion/` |
+| **Encode** | x264 in parallel chunks, then joined | `toolkit/render.py` |
+| **Audio** | voice-over lines anchored to on-screen moments, music ducked under the voice, loudness normalised (LUFS), captions from Whisper word timestamps aligned to the script | `toolkit/audio.py`, `captions.py` |
+| **Self-check** | contact sheet, one-frame-glitch scan, platform safe zones, loudness report | `toolkit/contactsheet.py`, `safezones.py` |
+| **Publish** | one API for five platforms; uploads as a private draft, and only an explicit `--go` publishes | `toolkit/publish.py` |
+| **Knowledge base** | analyses reference videos (cuts, transcript, sound map) and keeps one lesson per line with its proof, in capped pages | `toolkit/kb.py`, `trends/` |
+
+## Project layout
+
+```
+claude-video-toolkit/
+├── vtk                  CLI entry point (./vtk <command>, runs in .venv)
+├── CLAUDE.md            operating manual the agent follows: workflow, rules, spec reference
+├── toolkit/             the engine (Python)
+├── motion/              motion-graphics looks (Remotion + React + TypeScript)
+├── templates/           15 video-format templates for ./vtk new
+├── examples/            footage-free example specs (demo, kinetic stats, carousel, beat reveal, …)
+├── brand/default/       base brand, themes and styles every brand extends
+├── trends/              the knowledge base: BRAIN.md + one page per topic
+├── tests/               pytest suite
+├── docs/                getting-started guide, media
+└── workspace.example/   template for the private, git-ignored workspace/ (brands, specs, ideas)
+```
+
+Everything personal (brands, video specs, ideas, recordings, API keys) stays out of the repo: `workspace/` and
+`inbox/` are git-ignored, and API keys live in the macOS Keychain.
+
+## Quick start
+
+Requirements: macOS, Python 3.11, FFmpeg (with libass and rubberband), Node 24 for motion looks.
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+./setup.sh                                   # venv, Python deps, fonts, workspace/ from workspace.example/
+./vtk render examples/demo.yaml --preview    # renders a test video with no footage
+.venv/bin/python -m pytest                   # tests
 ```
 
-- It asks for your Mac password. You won't see the letters while you type: that's normal. Press **Enter**.
-- At the end it shows **Next steps** with 2 or 3 lines. Copy those lines, paste them, press **Enter**.
+New to the command line? The step-by-step guide is in [docs/getting-started.md](docs/getting-started.md).
 
-### Step 3: Log in to GitHub
+## Commands
 
-```bash
-brew install gh
-```
+| command | does |
+|---|---|
+| `./vtk inspect` | analyse inbox footage: duration, fps, idle stretches, contact sheets |
+| `./vtk new <name> --template <t>` | start a spec from a format template |
+| `./vtk validate <spec>` | errors with field paths, the timeline, every spoken phrase at output time |
+| `./vtk render <spec>` | render (`--preview`, `--frames`, `--aspect`, `--all-variants`) |
+| `./vtk voiceover <file>` | Whisper transcript with word timestamps |
+| `./vtk eleven say "…"` | ElevenLabs voice-over takes |
+| `./vtk learn <url>` | analyse a reference video into the knowledge base |
+| `./vtk publish <post.yaml>` | private draft on the connected platforms; `--go` publishes |
 
-```bash
-gh auth login
-```
+The full list, with every option, is in [`CLAUDE.md`](CLAUDE.md).
 
-Answer the questions with the arrow keys and **Enter**: **GitHub.com** → **HTTPS** → **Yes** → **Login with a web
-browser**. It shows a code: copy it, press **Enter**, and paste the code in the browser page that opens.
+## License
 
-### Step 4: Download the toolkit
-
-```bash
-gh repo clone pavanmulka/claude-video-toolkit ~/claude-video-toolkit
-```
-
-```bash
-cd ~/claude-video-toolkit
-```
-
-### Step 5: Install everything else (one command)
-
-```bash
-./setup.sh
-```
-
-Get a snack 🍿. It installs the video engine, the fonts and the helpers. The first time can take 30–40 minutes. It is
-finished when you see **setup done**.
-
-### Step 6: Test it
-
-```bash
-./vtk render examples/demo.yaml --preview
-```
-
-```bash
-open .work/demo/previews/demo_preview.mp4
-```
-
-A short video with "EVERY VIDEO IS A SPEC." plays? 🎉 Everything works.
-
-### Step 7: Get Claude
-
-1. Download the [Claude app for Mac](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect), open it and
-   drag it into **Applications**.
-2. Open Claude and log in. Click the **Code** tab → **Local** → **Select folder**.
-3. Pick the **claude-video-toolkit** folder (it's in your home folder, the one with the house icon 🏠).
-
-Like Terminal better? Run `brew install --cask claude-code`, then `cd ~/claude-video-toolkit` and `claude`.
-
-### Step 8: Tell Claude about your app
-
-Type this to Claude (fill in the blanks):
-
-> Set up my workspace. My app is called ___ and it helps people ___. I make videos for TikTok and Instagram.
-
-Claude fills in your private `workspace` folder: your app, your colours, your style.
-
-## 🔁 Every day
-
-1. 💡 Pick an idea. Showing your app? Record your phone screen (optional).
-2. 📂 Got files? Drag them into the `inbox` folder. (Finder → your home folder 🏠 → claude-video-toolkit → inbox)
-3. 💬 Tell Claude what you want: *"New video. Files are in inbox. Show how to add a card, 20 seconds, for TikTok."*
-4. 📝 Read the plan. Say "ok" or what to change.
-5. 👀 Watch the video in `inbox`. Ask for fixes if you want ("bigger text", "cut the start").
-6. 🚀 Post it. Then 🧹 empty `inbox` for tomorrow.
-
-## 🆘 If something goes wrong
-
-- **"command not found: brew"** → close Terminal and open it again. Still there? Do the **Next steps** lines from Step 2
-  again.
-- **Setup stopped with a red error** → run `./setup.sh` again (it continues where it stopped).
-- **Anything else** → copy the error text, paste it to Claude and say *"fix this"*.
-
-## 🔒 Your stuff stays yours
-
-- `workspace/` keeps your app's info, your video recipes and your ideas.
-- `inbox/` keeps your recordings and finished videos.
-- Both stay on your Mac. They are never uploaded to this repo.
-
-## 🤓 For the curious
-
-Commands Claude uses (you can use them too):
-
-```bash
-./vtk inspect                        # what's in inbox (contact sheets, idle moments, iPhone model)
-./vtk new my-video --template problem-payoff   # start a video from one of 13 formats (./vtk new --list)
-./vtk render workspace/history/<date>_my-video/spec.yaml --preview
-./vtk looks --render themes          # see every theme, text effect, mark, transition and caption style
-./vtk learn <TikTok / YouTube / Instagram link>   # add a video to the trends knowledge base
-./vtk ideas                          # your video ideas board
-```
-
-What's inside:
-
-- iPhone frame drawn in code (real corner radius, Dynamic Island), 3D tilt entrances, zooms, speed ramps, freeze frames.
-- 11 visual themes with moving backgrounds (glow stage, paper, grid, aurora...).
-- Moving text: word by word, stamps, typewriter, highlighter, strike-and-replace, glass cards, text behind the phone.
-- Drawn circles and arrows, and pop-out magnified parts of the real screen.
-- Captions made from the voice-over, word by word, in 2026 styles.
-- Voice effects (phone call, radio, airplane PA...), sound effects, music that gets quieter under the voice, the right
-  loudness for each platform.
-- Transitions (whip, zoom-through, slide...), loop endings, warnings when text sits under TikTok's buttons.
-- Motion graphics (chat bubbles, counters, charts, end cards) made with Remotion.
-- A/B versions of the first seconds, other sizes (1:1, 4:5, 16:9), a caption file, and a contact sheet after every
-  video so Claude checks its own work.
-
-The full manual (what Claude follows) is [CLAUDE.md](CLAUDE.md). Motion graphics use Remotion, which is free for
-individuals and companies of up to 3 people (see its license).
+[MIT](LICENSE). Fonts keep their own SIL Open Font License (`brand/fonts/LICENSES.md`).
