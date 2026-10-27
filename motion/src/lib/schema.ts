@@ -89,6 +89,7 @@ export const commonShape = (d: CommonDefaults) => {
 		fps: num(30, 'Frames per second', 1, 120),
 		duration: num(d.duration, 'Length in seconds', 0.1, 600),
 		transparent: bool(d.transparent, 'true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it'),
+		stage: oneOf(['themed', 'plain'] as const, 'themed', 'With transparent=false: themed = the glowing stage, plain = just the flat theme bg colour (an opaque H.264 layer that blends into a flat stage, e.g. a side panel)'),
 		theme: doc(themeSchema.default(DEFAULT_THEME), 'Colours (hex)'),
 		font: doc(fontSchemaWith(font).default(font), 'Primary font'),
 		font2: doc(font2Schema.default(DEFAULT_FONT2), 'Secondary font (italic / editorial accents)'),
@@ -107,6 +108,7 @@ export type CommonProps = {
 	fps: number;
 	duration: number;
 	transparent: boolean;
+	stage: 'themed' | 'plain';
 	theme: Theme;
 	font: FontProps;
 	font2: Font2Props;

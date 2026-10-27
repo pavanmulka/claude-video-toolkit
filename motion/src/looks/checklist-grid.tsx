@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {breathe, ease, lerp, map, prog, sp} from '../lib/anim';
-import {glowShadow, liftShadow, mix, onColor, rgba} from '../lib/color';
+import {glowShadow, liftShadow, luminance, mix, onColor, rgba} from '../lib/color';
 import {fontCss} from '../lib/fonts';
 import {FitBox} from '../lib/fit';
 import {CheckBadge, ShineBand} from '../lib/fx';
 import {defineLook, useLook, type LookProps} from '../lib/look';
 import {parseRich} from '../lib/rich';
-import {bool, int, num, str, strList} from '../lib/schema';
+import {bool, int, num, oneOf, str, strList} from '../lib/schema';
 import {Segs} from '../lib/text';
 
 const props = {
@@ -20,6 +20,9 @@ const props = {
 	size: num(46, 'Card label size (design units)', 10, 150),
 	titleSize: num(78, 'Title size (design units)', 10, 250),
 	y: num(0.5, 'Vertical centre (fraction of height)', 0, 1),
+	gridWidth: num(0, 'Grid width as a fraction of the frame width (0 = auto: 0.84 landscape, 0.9 portrait)', 0, 1),
+	cardAspect: num(0.78, 'Card height / width (lower = flatter cards; never shorter than the label needs)', 0.2, 2),
+	tone: oneOf(['auto', 'dark', 'light'] as const, 'auto', 'Card surface: dark glass, light (white cards with dark text, for light stages), or auto (light when the theme text colour is dark)'),
 };
 
 type P = LookProps<typeof props>;
@@ -31,11 +34,13 @@ const ChecklistGrid: React.FC<{p: P}> = ({p}) => {
 	const rich = useMemo(() => parseRich(p.title), [p.title]);
 	const n = p.items.length;
 	const cols = p.columns > 0 ? p.columns : landscape ? Math.min(4, n) : Math.min(2, n);
-	const gridW = landscape ? Math.min(W * 0.84, 1700 * u) : Math.min(W * 0.9, 1000 * u);
+	const gridW = p.gridWidth > 0 ? W * p.gridWidth : landscape ? Math.min(W * 0.84, 1700 * u) : Math.min(W * 0.9, 1000 * u);
+	const light = p.tone === 'light' || (p.tone === 'auto' && luminance(theme.fg) < 0.35);
+	const ink = light ? '#141821' : theme.fg;
 	const gap = 26 * u;
 	const cardW = (gridW - gap * (cols - 1)) / cols;
 	const fs = p.size * u;
-	const cardH = Math.max(fs * 5.2, cardW * 0.78);
+	const cardH = Math.max(fs * (p.cardAspect < 0.78 ? 3.4 : 5.2), cardW * p.cardAspect);
 	const titleEnd = 0.1 + rich.words.length * 0.06 + 0.4;
 	const allDone = titleEnd + (n - 1) * p.stagger + 1.1;
 	const drift = map(t, [0, Ds], [0, 1]);
@@ -97,9 +102,11 @@ const ChecklistGrid: React.FC<{p: P}> = ({p}) => {
 											display: 'flex',
 											flexDirection: 'column',
 											justifyContent: 'space-between',
-											background: `linear-gradient(160deg, ${rgba(mix(theme.bg, '#FFFFFF', 0.2), 0.72)}, ${rgba(mix(theme.bg, '#FFFFFF', 0.07), 0.66)})`,
-											border: `${2 * u}px solid ${rgba(done ? theme.accent : '#FFFFFF', done ? 0.22 + 0.4 * glowK : 0.14)}`,
-											boxShadow: `0 ${20 * u}px ${50 * u}px rgba(0,0,0,0.35), inset 0 ${2 * u}px 0 ${rgba('#FFFFFF', 0.14)}, 0 0 ${50 * u}px ${rgba(theme.accent, 0.3 * glowK)}`,
+											background: light ? 'linear-gradient(160deg, #FFFFFF, #F4F6FA)' : `linear-gradient(160deg, ${rgba(mix(theme.bg, '#FFFFFF', 0.2), 0.72)}, ${rgba(mix(theme.bg, '#FFFFFF', 0.07), 0.66)})`,
+											border: `${2 * u}px solid ${rgba(done ? theme.accent : light ? '#0A0F1E' : '#FFFFFF', done ? 0.22 + 0.4 * glowK : light ? 0.06 : 0.14)}`,
+											boxShadow: light
+												? `0 ${14 * u}px ${36 * u}px rgba(15,20,40,0.12), 0 0 ${50 * u}px ${rgba(theme.accent, 0.3 * glowK)}`
+												: `0 ${20 * u}px ${50 * u}px rgba(0,0,0,0.35), inset 0 ${2 * u}px 0 ${rgba('#FFFFFF', 0.14)}, 0 0 ${50 * u}px ${rgba(theme.accent, 0.3 * glowK)}`,
 											backdropFilter: `blur(${24 * u}px)`,
 											opacity: Math.min(1, s * 1.6),
 											transform: `translateY(${(1 - s) * 60 * u}px) rotateX(${(1 - s) * 28}deg) scale(${lerp(0.86, 1, s)})`,
@@ -134,7 +141,7 @@ const ChecklistGrid: React.FC<{p: P}> = ({p}) => {
 												</div>
 											) : null}
 										</div>
-										<div style={{...fontCss(font, {weight: 700}), fontSize: fs, lineHeight: 1.12, color: theme.fg, letterSpacing: '-0.01em'}}>{item}</div>
+										<div style={{...fontCss(font, {weight: 700}), fontSize: fs, lineHeight: 1.12, color: ink, letterSpacing: '-0.01em'}}>{item}</div>
 										<ShineBand p={shine} opacity={0.22} width={0.5} />
 										<div style={{position: 'absolute', inset: 0, pointerEvents: 'none', background: `radial-gradient(120% 60% at 0% 0%, ${rgba('#FFFFFF', 0.08 + 0.04 * breathe(t, 3, i * 0.3))}, transparent 60%)`}} />
 									</div>

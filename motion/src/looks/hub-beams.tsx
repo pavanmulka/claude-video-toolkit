@@ -3,30 +3,34 @@ import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {z} from 'zod';
 import {breathe, ease, map, prog, sp} from '../lib/anim';
-import {liftShadow, mix, rgba} from '../lib/color';
+import {liftShadow, luminance, mix, rgba} from '../lib/color';
 import {EMOJI_STACK, fontCss} from '../lib/fonts';
 import {defineLook, useLook, type LookProps} from '../lib/look';
 import {Logo} from '../lib/logo';
-import {asset, doc, num, str} from '../lib/schema';
+import {asset, doc, num, oneOf, str} from '../lib/schema';
 import {glass} from '../lib/ui';
 
 const itemSchema = z.object({
 	label: str('Item', 'Source label'),
 	icon: str('✨', 'Emoji (or leave empty)'),
+	at: num(-1, 'Seconds at which this pill lights up (accent ring, glow, small bump), e.g. when the voice names it; -1 = never', -1, 600),
+	color: str('', 'Label colour (e.g. a platform brand colour); empty = the normal text colour'),
 });
 
 const props = {
 	items: doc(
 		z.array(itemSchema).default([
-			{label: 'Photos', icon: '📷'},
-			{label: 'Emails', icon: '✉️'},
-			{label: 'Notes', icon: '📝'},
-			{label: 'Files', icon: '📁'},
+			{label: 'Photos', icon: '📷', at: -1, color: ''},
+			{label: 'Emails', icon: '✉️', at: -1, color: ''},
+			{label: 'Notes', icon: '📝', at: -1, color: ''},
+			{label: 'Files', icon: '📁', at: -1, color: ''},
 		]),
-		'Sources on the left: [{label, icon}] (2-6)',
+		'Sources on the left: [{label, icon, at, color}] (2-6)',
 	),
 	hubLabel: str('Your App', 'Label under the hub'),
 	hubLogo: asset('Hub logo image; empty = monogram'),
+	logoShape: oneOf(['app', 'circle', 'none'] as const, 'app', 'Clip of the hub logo: app-icon squircle, circle, or none (a mark on a transparent background, shown whole)'),
+	tone: oneOf(['auto', 'dark', 'light'] as const, 'auto', 'Pills + hub surface: dark glass, light (white cards, dark text: for light stages), or auto (light when the theme text colour is dark)'),
 	speed: num(1, 'Pulse speed multiplier', 0, 10),
 	itemSize: num(44, 'Item label size (design units)', 10, 120),
 	hubSize: num(270, 'Hub size (design units)', 60, 700),
@@ -73,6 +77,9 @@ const HubBeams: React.FC<{p: P}> = ({p}) => {
 	});
 	const hit = Math.min(1, arrivals.reduce((a, b) => a + b, 0));
 	const rot = t * 70;
+	const light = p.tone === 'light' || (p.tone === 'auto' && luminance(theme.fg) < 0.35);
+	const tone = light ? 'light' : 'dark';
+	const ink = light ? '#141821' : theme.fg;
 	const drift = map(t, [0, Ds], [0, 1]);
 	return (
 		<AbsoluteFill style={{transform: `scale(${1 + 0.015 * drift})`}}>
@@ -109,6 +116,9 @@ const HubBeams: React.FC<{p: P}> = ({p}) => {
 			{p.items.map((it, i) => {
 				const e = sp(frame, fps, 0.05 + i * 0.1, {damping: 15, stiffness: 170});
 				const top = beams[i].iy - itemH / 2;
+				const dt = it.at >= 0 ? t - it.at : -1;
+				const lit = dt < 0 ? 0 : dt < 0.12 ? dt / 0.12 : Math.exp(-(dt - 0.12) / 0.9);
+				const hold = it.at >= 0 && t >= it.at ? 1 : 0;
 				return (
 					<div
 						key={i}
@@ -119,20 +129,24 @@ const HubBeams: React.FC<{p: P}> = ({p}) => {
 							width: itemW,
 							height: itemH,
 							boxSizing: 'border-box',
-							...glass(u, theme, 'dark', 200),
+							...glass(u, theme, tone, 200),
 							display: 'flex',
 							alignItems: 'center',
 							gap: fs * 0.45,
-							padding: `0 ${fs * 0.5}px 0 ${fs * 0.28}px`,
+							padding: `0 ${fs * 0.5}px 0 ${it.icon ? fs * 0.28 : fs * 0.7}px`,
 							opacity: Math.min(1, e * 1.5),
-							transform: `translateX(${(1 - e) * -80 * u}px)`,
-							boxShadow: `${glass(u, theme).boxShadow}, 0 0 ${30 * u}px ${rgba(theme.accent, 0.35 * arrivals[i])}`,
+							transform: `translateX(${(1 - e) * -80 * u}px) scale(${1 + 0.07 * lit})`,
+							outline: hold ? `${3 * u}px solid ${rgba(theme.accent, 0.35 + 0.65 * lit)}` : 'none',
+							outlineOffset: 3 * u,
+							boxShadow: `${light ? `0 ${12 * u}px ${30 * u}px rgba(15,20,40,0.12)` : glass(u, theme).boxShadow}, 0 0 ${30 * u}px ${rgba(theme.accent, 0.35 * arrivals[i])}, 0 0 ${46 * u}px ${rgba(theme.accent, 0.55 * lit)}`,
 						}}
 					>
-						<div style={{width: itemH * 0.78, height: itemH * 0.78, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: rgba('#FFFFFF', 0.14), fontFamily: EMOJI_STACK, fontSize: itemH * 0.46, lineHeight: 1}}>
-							{it.icon}
-						</div>
-						<div style={{...fontCss(font, {weight: 700}), fontSize: fs, color: theme.fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{it.label}</div>
+						{it.icon ? (
+							<div style={{width: itemH * 0.78, height: itemH * 0.78, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: light ? rgba(theme.accent, 0.1) : rgba('#FFFFFF', 0.14), fontFamily: EMOJI_STACK, fontSize: itemH * 0.46, lineHeight: 1}}>
+								{it.icon}
+							</div>
+						) : null}
+						<div style={{...fontCss(font, {weight: 700}), fontSize: fs, color: it.color || ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{it.label}</div>
 						<div style={{marginLeft: 'auto', width: 12 * u, height: 12 * u, borderRadius: '50%', background: theme.accent, boxShadow: `0 0 ${12 * u}px ${theme.accent}`, flexShrink: 0}} />
 					</div>
 				);
@@ -142,12 +156,12 @@ const HubBeams: React.FC<{p: P}> = ({p}) => {
 				<div style={{position: 'relative', width: hs, height: hs}}>
 					<div style={{position: 'absolute', inset: -hs * 0.45, borderRadius: '50%', background: `radial-gradient(circle, ${rgba(theme.glow, 0.45 + 0.25 * hit + 0.1 * breathe(t, 2))} 0%, transparent 65%)`}} />
 					<div style={{position: 'absolute', inset: 0, borderRadius: hs * 0.28, padding: 4 * u, background: `conic-gradient(from ${rot}deg, ${rgba(theme.accent, 0)} 0deg, ${theme.accent} 70deg, ${rgba(theme.accent2, 0)} 140deg, ${rgba(theme.accent2, 0)} 200deg, ${theme.accent2} 270deg, ${rgba(theme.accent, 0)} 340deg)`}}>
-						<div style={{...glass(u, theme, 'dark', 0), width: '100%', height: '100%', boxSizing: 'border-box', borderRadius: hs * 0.26, background: `linear-gradient(160deg, ${mix(theme.bg, '#FFFFFF', 0.16)}, ${mix(theme.bg, '#000000', 0.1)})`, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-							<Logo src={p.hubLogo} name={p.hubLabel} size={hs * 0.56} shape="app" theme={theme} font={font} shadow={false} />
+						<div style={{...glass(u, theme, tone, 0), width: '100%', height: '100%', boxSizing: 'border-box', borderRadius: hs * 0.26, background: light ? 'linear-gradient(160deg, #FFFFFF, #EEF1F7)' : `linear-gradient(160deg, ${mix(theme.bg, '#FFFFFF', 0.16)}, ${mix(theme.bg, '#000000', 0.1)})`, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+							<Logo src={p.hubLogo} name={p.hubLabel} size={hs * 0.56} shape={p.logoShape} theme={theme} font={font} shadow={false} />
 						</div>
 					</div>
 				</div>
-				{p.hubLabel ? <div style={{...fontCss(font, {weight: 800}), fontSize: fs * 1.05, color: theme.fg, textShadow: liftShadow(u, 0.4)}}>{p.hubLabel}</div> : null}
+				{p.hubLabel ? <div style={{...fontCss(font, {weight: 800}), fontSize: fs * 1.05, color: ink, textShadow: light ? 'none' : liftShadow(u, 0.4)}}>{p.hubLabel}</div> : null}
 			</div>
 		</AbsoluteFill>
 	);

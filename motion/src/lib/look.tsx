@@ -150,7 +150,7 @@ export function defineLook<S extends AnyShape>(def: LookDefInput<S>): LookDef {
 			: {};
 		return (
 			<AbsoluteFill style={{backgroundColor: 'transparent', overflow: 'hidden'}}>
-				{!isBg && !p.transparent ? <StageBackground theme={p.theme} /> : null}
+				{!isBg && !p.transparent ? (p.stage === 'plain' ? <AbsoluteFill style={{backgroundColor: p.theme.bg}} /> : <StageBackground theme={p.theme} />) : null}
 				{ready ? (
 					<Sequence from={delayF} layout="none" name={def.id}>
 						<Ctx.Provider value={ctx}>
