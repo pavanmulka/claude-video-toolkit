@@ -6,7 +6,8 @@ from pathlib import Path
 import numpy as np
 
 from . import brand as brandmod
-from .device import is_iphone_recording
+from . import reveal as revealmod
+from .device import is_android_recording, is_iphone_recording
 from .paths import BRANDS, INBOX, expand
 
 
@@ -41,13 +42,23 @@ def _layout_for(clip, sec, spec, src_info):
         if src_info and src_info.get("width") and is_iphone_recording(src_info["width"], src_info["height"]) \
                 and src_info["height"] > src_info["width"]:
             lay = "iphone"
+        elif src_info and src_info.get("width") and is_android_recording(src_info["width"], src_info["height"]) \
+                and src_info["height"] > src_info["width"]:
+            lay = "android"
         elif src_info and src_info.get("width") and src_info["width"] / max(1, src_info["height"]) > (spec["output"]["W"] / spec["output"]["H"]) * 1.4:
             lay = "fit"
         else:
             lay = "fullbleed"
     if isinstance(lay, str):
         lay = {"type": lay}
-    base = copy.deepcopy(spec["brand"].get("layouts", {}).get(lay["type"], {}))
+    layouts = spec["brand"].get("layouts", {})
+    if lay["type"] == "android":  # the drawn-phone layout with a Pixel-style body: brand iphone defaults, then android's
+        base = copy.deepcopy(layouts.get("iphone", {}))
+        base.update(copy.deepcopy(layouts.get("android", {})))
+        base.update(lay)
+        base.update(type="iphone", device="android")
+        return base
+    base = copy.deepcopy(layouts.get(lay["type"], {}))
     base.update(lay)
     return base
 
@@ -59,11 +70,13 @@ def _background_for(clip, sec, spec):
     return bg or {"type": "color", "color": "#000000"}
 
 
-OVERLAP = {"crossfade", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash"}
+OVERLAP = {"crossfade", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash", "shrink", "grow", "flood"}
+CARRY = {"shrink", "grow", "flood"}   # transitions whose section texts + overlays move with their picture by default (carry:)
 TRANS_DUR = {"crossfade": 0.25, "slide": 0.35, "push": 0.35, "whip": 0.22, "zoom": 0.35, "blur": 0.3, "wipe": 0.4,
-             "circle": 0.45, "glitch": 0.2, "flash": 0.2, "dip": 0.3}
+             "circle": 0.45, "glitch": 0.2, "flash": 0.2, "dip": 0.3, "shrink": 0.4, "grow": 0.35, "flood": 0.75}
 TRANS_SFX = {"whip": ("whoosh", -16), "slide": ("swish", -18), "push": ("swish", -18), "zoom": ("whoosh", -17),
-             "glitch": ("glitch", -18), "wipe": ("swish", -20), "circle": ("swish", -20), "flash": ("impact", -20)}
+             "glitch": ("glitch", -18), "wipe": ("swish", -20), "circle": ("swish", -20), "flash": ("impact", -20),
+             "shrink": ("swoosh_up", -18), "grow": ("swish", -19), "flood": ("whoosh", -19)}
 
 
 def _transition(tr, fps):
@@ -73,10 +86,13 @@ def _transition(tr, fps):
         tr = {"type": tr}
     t = tr.get("type", "cut")
     d = tr.get("dur", TRANS_DUR.get(t, 0.3))
-    out = {"type": t, "n": max(1, int(round(d * fps))), "color": tr.get("color", "#FFFFFF" if t == "flash" else "#000000")}
-    for k in ("dir", "ease", "pos", "sfx", "volume"):
+    out = {"type": t, "n": max(1, int(round(d * fps))), "color": tr.get("color", "#FFFFFF" if t == "flash" else "#000000"),
+           "carry": tr.get("carry", t in CARRY)}
+    for k in ("dir", "ease", "pos", "sfx", "volume", "shape", "from", "to", "radius"):
         if k in tr:
             out[k] = tr[k]
+    if t == "flood":
+        out["_hold"] = min(0.6, float(tr.get("hold", 0.13)) / max(d, 1e-3))   # solid-colour beat, as a share of dur
     return out
 
 
@@ -186,7 +202,8 @@ def build(spec, fps=None, scale=1.0):
         text = sec.get("text")
         behind = False
         if isinstance(text, dict):
-            tstyle, tpos, tcontent, behind = text.get("style"), text.get("pos"), text.get("content"), bool(text.get("behind"))
+            tstyle, tpos, tcontent, behind = text.get("style"), text.get("pos"), text.get("content"), text.get("behind") or False
+            behind = behind if behind in ("subject", "person") else bool(behind)   # True = behind the phone/card
         else:
             tstyle, tpos, tcontent = None, None, text
         plan["sections"].append({
@@ -195,11 +212,12 @@ def build(spec, fps=None, scale=1.0):
             "text": None if tcontent in (None, "none", "") else str(tcontent),
             "style": tstyle or sec.get("text_style") or spec["defaults"].get("text_style") or "caption_top",
             "pos": tpos or sec.get("text_pos") or spec["defaults"].get("text_pos") or "caption_band",
-            "anim": {**spec["brand"].get("text_anim", {}), **(spec["defaults"].get("text_anim") or {}), **(sec.get("text_anim") or {})},
+            "anim": _with_mblur({**spec["brand"].get("text_anim", {}), **(spec["defaults"].get("text_anim") or {}),
+                                 **(sec.get("text_anim") or {})}, spec),
         })
         _text_sfx(plan, spec, F)
         for ov in sec.get("overlays") or []:
-            plan["overlays"].append(_overlay(ov, spec, F, base=sec_start, default_end=cursor))
+            plan["overlays"].append(dict(_overlay(ov, spec, F, base=sec_start, default_end=cursor), sec=si))
     plan["total"] = cursor
     for i, s in enumerate(plan["sections"][:-1]):
         s["end"] = min(s["end"], plan["sections"][i + 1]["start"])
@@ -226,7 +244,8 @@ def build(spec, fps=None, scale=1.0):
                 plan["warnings"].append(f"clip {seg['label']}: tap at source {t['src']}s is outside the clip's range; skipped")
                 continue
             g = seg["start"] + local
-            plan["taps"].append({"g": g, "seg": seg["label"], "pos": t["pos"]})
+            plan["taps"].append({"g": g, "seg": seg["label"], "pos": t["pos"], "hold": t.get("hold"), "drag": t.get("drag"),
+                                 "drag_dur": t.get("drag_dur")})
             if t.get("sound", "tap") not in (None, "none", False):
                 plan["sfx"].append({"sound": brandmod.sound_path(spec["brand"], t.get("sound", "tap")), "at": g / F,
                                     "volume": t.get("volume", -15), "pan": 0, "align": "start"})
@@ -256,6 +275,17 @@ def _src_to_local(seg, src_t, F):
     return ms + float(np.interp(src_t, main, np.arange(len(main))))
 
 
+def _pointer(p):
+    """clip `pointer`: true | touch | cursor | {style, ...} -> dict, or None when off."""
+    if not p:
+        return None
+    if p is True:
+        return {"style": "touch"}
+    if isinstance(p, str):
+        return {"style": p}
+    return dict({"style": "touch"}, **p)
+
+
 def _make_segment(spec, sec, si, ci, c, F):
     label = f"{sec.get('section', si)}[{ci}]"
     drift = c.get("drift", sec.get("drift", spec["defaults"].get("drift", 0.0)))
@@ -265,8 +295,10 @@ def _make_segment(spec, sec, si, ci, c, F):
            "camera": _camera(c, drift), "drift": float(drift or 0.0), "dim": c.get("dim", 0.0),
            "vignette": c.get("vignette", 0.0), "audio": c.get("audio"),
            "enter": c.get("enter") or sec.get("enter"), "taps": c.get("taps") or [], "lifts": [dict(x) for x in c.get("lifts") or []],
-           "marks": [dict(x) for x in c.get("marks") or []],
-           "autozoom": c.get("autozoom", sec.get("autozoom", spec["defaults"].get("autozoom"))), "manual_camera": bool(c.get("camera"))}
+           "marks": [dict(x) for x in c.get("marks") or []], "redact": [dict(x) for x in c.get("redact") or []],
+           "autozoom": c.get("autozoom", sec.get("autozoom", spec["defaults"].get("autozoom"))), "manual_camera": bool(c.get("camera")),
+           "pointer": _pointer(c.get("pointer", sec.get("pointer", spec["defaults"].get("pointer")))),
+           "reveal": revealmod.normalize(c["reveal"] if "reveal" in c else (sec["reveal"] if "reveal" in sec and ci == 0 else None))}
     if "still" in c:
         src = c["still"]["src"]
         info = spec["sources"][src]["info"]
@@ -354,7 +386,7 @@ def _text_sfx(plan, spec, F):
     snd = a.get("sfx")
     if not snd or not s["text"] or snd == "none":
         return
-    t0 = s["start"] / F
+    t0 = s["start"] / F + (a.get("delay") or 0)
     vol = a.get("sfx_volume", -22 if snd == "typing" else -18)
     if snd == "typing" and a.get("by") == "letter":
         n = len(s["text"].replace("**", "").replace("~~", "").replace(" ", ""))
@@ -368,12 +400,20 @@ def _text_sfx(plan, spec, F):
                         "align": "peak" if snd in ("whoosh", "swish", "swoosh_up") else "start"})
 
 
-def _anim(a):
+def _anim(a, spec=None):
     if not a:
         return None
     if isinstance(a, str):
-        return {"in": a}
-    return dict(a)
+        a = {"in": a}
+    return _with_mblur(dict(a), spec)
+
+
+def _with_mblur(a, spec):
+    """defaults.motion_blur: motion blur on every animated text / overlay that doesn't set its own."""
+    mb = (spec or {}).get("defaults", {}).get("motion_blur")
+    if mb and "motion_blur" not in a:
+        a["motion_blur"] = mb
+    return a
 
 
 def _overlay(ov, spec, F, base, default_end):
@@ -388,7 +428,7 @@ def _overlay(ov, spec, F, base, default_end):
     fi, fo = (fade if isinstance(fade, (list, tuple)) else (fade, fade))
     d = {"start": start, "end": end, "pos": ov.get("pos", "center"), "anchor": ov.get("anchor", "center"),
          "fade_in": float(fi), "fade_out": float(fo), "rise": float(ov.get("rise", 0)), "opacity": float(ov.get("opacity", 1.0)),
-         "anim": _anim(ov.get("anim")), "shine": ov.get("shine")}
+         "anim": _anim(ov.get("anim"), spec), "shine": ov.get("shine"), "behind": ov.get("behind") or None}
     if d["shine"] is True:
         d["shine"] = {}
     if "text" in ov:
@@ -422,7 +462,9 @@ def _bpm(spec):
     if mu.get("bpm"):
         return float(mu["bpm"])
     if mu.get("generate") is not None:
-        return float((mu["generate"] or {}).get("bpm", 120))
+        g = mu["generate"] or {}
+        from .synth import MOODS
+        return float(g.get("bpm") or MOODS.get(g.get("mood") or "chill", MOODS["chill"])["bpm"])
     return 120.0
 
 
@@ -461,10 +503,12 @@ def _autozoom(plan, spec, F):
 def _pin_times(plan, F):
     """Local start times (seconds into the clip) for lifts and marks given by source time or clip time."""
     for seg in plan["segments"]:
-        for kind in ("lifts", "marks"):
+        for kind in ("lifts", "marks", "redact"):
             keep = []
             for x in seg.get(kind) or []:
-                if "src" in x:
+                if kind == "redact" and "src" not in x and "at" not in x:
+                    x["t0"] = 0.0                      # no time given: the whole clip
+                elif "src" in x:
                     local = _src_to_local(seg, float(x["src"]), F)
                     if local is None:
                         plan["warnings"].append(f"clip {seg['label']}: {kind[:-1]} at source {x['src']}s is outside the clip's range; skipped")

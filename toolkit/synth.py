@@ -190,6 +190,115 @@ def swoosh_up():
     return whoosh(0.45, 0.38, 5200)
 
 
+def _saw(f, t, voices=3, detune=0.012):
+    y = np.zeros(len(t))
+    for v in range(voices):
+        ff = f * (1 + detune * (v - (voices - 1) / 2))
+        y += 2 * ((ff * t + 0.37 * v) % 1.0) - 1
+    return y / voices
+
+
+def reveal():
+    """Dark two-stab sting, 'dun… dun' (something unexpected is revealed). Peak = the second, lower stab."""
+    n = int(2.4 * SR)
+    y = np.zeros(n)
+    for k, (root, at) in enumerate([(40, 0.0), (37, 0.42)]):        # E2, then C#2: down a minor third
+        t = _t(1.6 if k else 0.7)
+        env = np.minimum(1, t / 0.008) * np.exp(-t / (0.55 if k else 0.22))
+        x = sum(_saw(mtof(root + iv), t) * g for iv, g in ((0, 1.0), (7, 0.55), (12, 0.45)))
+        x = _onepole_lp(_onepole_lp(x, 900 if k else 1200), 1400)
+        x += np.sin(2 * np.pi * mtof(root - 12) * t) * 0.9          # sub under each stab
+        x = np.tanh(1.6 * x * env)
+        o = int(at * SR)
+        y[o:o + len(x)] += x[: n - o]
+    tail = np.convolve(y, np.exp(-_t(0.9) / 0.25) * rng.standard_normal(int(0.9 * SR)) * 0.004, mode="full")[:n]
+    return y + tail
+
+
+def cash():
+    """Cash register 'ka-ching': drawer clunk, then a bright bell and a few coins. Peak = the ching."""
+    n = int(1.4 * SR)
+    y = np.zeros(n)
+    t = _t(0.09)                                                      # ka: mechanical clunk
+    clunk = _onepole_lp(rng.standard_normal(len(t)), 1800) * np.exp(-t / 0.018) * 2.2
+    clunk += np.sin(2 * np.pi * 140 * t) * np.exp(-t / 0.03)
+    y[:len(t)] += clunk
+    o = int(0.11 * SR)                                                # ching: two bright metallic bells
+    for f, g in ((2093.0, 0.8), (2637.0, 0.6), (3520.0, 0.25)):
+        b = bell(f, 1.2) * g
+        y[o:o + len(b)] += b[: n - o]
+    g = np.random.default_rng(3)                                      # a few coins after it
+    for k in range(5):
+        b = bell(mtof(g.integers(96, 104)), 0.18) * g.uniform(0.08, 0.18)
+        c = o + int((0.08 + k * 0.05 + g.uniform(0, 0.02)) * SR)
+        y[c:c + len(b)] += b[: n - c]
+    return y
+
+
+def correct():
+    """Quiz 'right answer': two quick rising bright notes (C6 -> E6). Peak = the second note."""
+    n = int(0.9 * SR)
+    y = np.zeros(n)
+    for k, f in enumerate((1046.5, 1318.5)):
+        t = _t(0.7)
+        x = (np.sin(2 * np.pi * f * t) + 0.35 * np.sin(2 * np.pi * 2 * f * t) + 0.15 * np.sin(2 * np.pi * 3 * f * t))
+        x *= np.minimum(1, t / 0.002) * np.exp(-t / (0.12 if k == 0 else 0.3))
+        o = int(k * 0.11 * SR)
+        y[o:o + len(x)] += x[: n - o]
+    return y
+
+
+def wrong():
+    """Quiz 'wrong answer' buzzer: two short low 'eh-eh' buzzes."""
+    n = int(0.55 * SR)
+    y = np.zeros(n)
+    for o in (0.0, 0.24):
+        t = _t(0.19)
+        x = sum(np.sign(np.sin(2 * np.pi * f * t)) for f in (146.8, 155.6)) / 2
+        x = _onepole_lp(x, 2400) * np.minimum(1, t / 0.004) * np.minimum(1, (0.19 - t) / 0.02)
+        i = int(o * SR)
+        y[i:i + len(x)] += x[: n - i]
+    return y
+
+
+def riser_metal(length=1.6):
+    """Metallic tension riser: inharmonic ringing partials sweeping up, louder and brighter, cut dead at the end."""
+    t = _t(length)
+    p = (t / length) ** 1.6
+    f0 = 180 * (7.0 ** p)                                              # 180 Hz -> ~1.26 kHz
+    y = np.zeros(len(t))
+    for r, g in ((1.0, 1.0), (2.76, 0.6), (5.40, 0.4), (8.93, 0.25)):
+        y += g * np.sin(2 * np.pi * np.cumsum(f0 * r) / SR + r)
+    y = y * (0.15 + 0.85 * p) + whoosh(length, length - 0.02, 5200) * 0.6
+    return y * np.minimum(1, (length - t) / 0.006)
+
+
+def scratch():
+    """Record scratch ('wait, what?'): two fast noise strokes, pitch swept up then down."""
+    t = _t(0.36)
+    nz = rng.standard_normal(len(t))
+    fc = 500 + 3500 * np.abs(np.sin(np.pi * t / 0.18))                 # two strokes
+    y = np.empty(len(t))
+    lo = hi = 0.0
+    for i in range(len(t)):
+        a = np.exp(-2 * np.pi * fc[i] / SR)
+        lo = (1 - a) * nz[i] + a * lo
+        b = np.exp(-2 * np.pi * fc[i] * 0.5 / SR)
+        hi = (1 - b) * lo + b * hi
+        y[i] = lo - hi
+    y += 0.5 * np.sin(2 * np.pi * np.cumsum(fc * 0.25) / SR)
+    return y * np.minimum(1, t / 0.004) * np.exp(-t / 0.25)
+
+
+def flash():
+    """Camera flash for smooth transitions: charging whine up, then the shutter click. Peak = the click."""
+    t = _t(0.28)
+    f = 2200 + 5200 * (t / 0.28) ** 2
+    whine = np.sin(2 * np.pi * np.cumsum(f) / SR) * (t / 0.28) ** 1.5 * 0.25
+    y = np.concatenate([whine, shutter()])
+    return y
+
+
 def cabin_chime():
     """The two-tone in-flight PA chime ('bing-bong', high then low)."""
     y = np.zeros(int(2.6 * SR))
@@ -275,7 +384,9 @@ def make_sfx(out_dir):
     sounds.update({"click": (click(), 0.0), "ding": (ding(), 0.0), "notify": (notify(), 0.0), "typing": (typing(), 0.0),
                    "shutter": (shutter(), 0.0), "glitch": (glitch(), 0.05), "boom": (boom(), 0.0), "sparkle": (sparkle(), 0.05),
                    "bubble": (bubble(), 0.0), "swoosh_up": (swoosh_up(), 0.38), "riser_short": (whoosh(0.9, 0.86, 4200), 0.86),
-                   "flyby": (flyby(), 6.0), "cabin_chime": (cabin_chime(), 0.0), "cabin_hum": (cabin_hum(), 0.0)})
+                   "flyby": (flyby(), 6.0), "cabin_chime": (cabin_chime(), 0.0), "cabin_hum": (cabin_hum(), 0.0),
+                   "reveal": (reveal(), 0.42), "cash": (cash(), 0.11), "correct": (correct(), 0.11), "wrong": (wrong(), 0.0),
+                   "riser_metal": (riser_metal(), 1.6), "scratch": (scratch(), 0.0), "flash": (flash(), 0.28)})
     meta = {}
     for name, (y, peak) in sounds.items():
         y = y / (np.abs(y).max() + 1e-9) * 0.7
@@ -293,6 +404,16 @@ PAD = {"I": [0, 4, 7, 11, 14], "vi": [-3, 0, 4, 7, 11], "IV": [-3, 0, 4, 7, 12],
 ROOT = {"I": -12, "vi": -15, "IV": -19, "V": -17}
 UPPER = {"I": [16, 19, 23, 26, 28], "vi": [16, 19, 21, 23, 28], "IV": [16, 17, 21, 24, 28], "V": [14, 16, 19, 21, 26]}
 PROG = ["I", "vi", "IV", "V"]
+
+# music moods (Viewcci "song per video type", 2026-10-04): the bed's job decides tempo, mode, drums, bass and lead
+MOODS = {
+    "chill":     {"bpm": 120, "minor": False, "drums": "groove", "bass": 0.24, "pad": 0.11, "keys": "chill"},   # default
+    "story":     {"bpm": 84,  "minor": True,  "drums": "none",   "bass": 0.0,  "pad": 0.15, "keys": "sparse"},  # narration leads
+    "teach":     {"bpm": 92,  "minor": True,  "drums": "soft",   "bass": 0.18, "pad": 0.07, "keys": "pluck"},   # head-nod, under the voice
+    "vlog":      {"bpm": 88,  "minor": False, "drums": "groove", "bass": 0.50, "pad": 0.09, "keys": "chill"},   # day in the life
+    "emotional": {"bpm": 72,  "minor": True,  "drums": "none",   "bass": 0.06, "pad": 0.06, "keys": "piano"},   # solo piano
+    "energetic": {"bpm": 140, "minor": True,  "drums": "trap",   "bass": 0.62, "pad": 0.05, "keys": "bell"},    # 808 + 16th hats
+}
 
 
 def _pad_note(f, dur, bright, detune_c=9):
@@ -383,10 +504,16 @@ def _reverb(x, length=1.6, decay=0.42, pre=0.018):
     return np.stack([np.fft.irfft(np.fft.rfft(x[:, c], nfft) * np.fft.rfft(ir[:, c], nfft), nfft)[:len(x)] for c in range(2)], 1)
 
 
-def music_bed(duration, bpm=120, key="D", drop=0.0, resolve=None, seed=7):
-    """Original half-time chill-pop bed: pad intro until `drop`, groove, resolve chord at `resolve`."""
+def music_bed(duration, bpm=None, key="D", drop=0.0, resolve=None, seed=7, mood="chill"):
+    """Original music bed: pad intro until `drop`, the mood's groove, resolve chord at `resolve`.
+
+    mood: chill (half-time chill-pop, default) · story · teach · vlog · emotional · energetic (see MOODS)."""
     global rng
     rng = np.random.default_rng(seed)
+    M = MOODS.get(mood or "chill", MOODS["chill"])
+    bpm = float(bpm or M["bpm"])
+    prog = ["vi", "IV", "I", "V"] if M["minor"] else PROG
+    home = "vi" if M["minor"] else "I"
     N = int(duration * SR)
     beat = 60.0 / bpm
     bar = 4 * beat
@@ -426,45 +553,91 @@ def music_bed(duration, bpm=120, key="D", drop=0.0, resolve=None, seed=7):
                 place(keys, _ep(mtof(m), 0.5, 2.0), 0.35 + i * 1.0, 0.10, -0.3 if i == 0 else 0.3)
     k_s, s_s = _kick(), _snare()
     kick_times = []
+    dr = M["drums"]
     for b in range(nbars):
-        ch = PROG[b % 4]
+        ch = prog[b % 4]
         br = 2300 if b < 4 else 2800
         for m in PAD[ch]:
-            place(pad, _pad_note(mtof(root + m), bar + 0.1, br), bt(b) - 0.03, 0.11)
+            place(pad, _pad_note(mtof(root + m), bar + 0.1, br), bt(b) - 0.03, M["pad"])
         r = mtof(root + ROOT[ch])
-        for (b_i, ln) in [(0, 1.4), (1.5, 0.9), (2.5, 1.4)]:
-            place(bass, _bass(r, ln * beat), bt(b, b_i), 0.24)
-        for kb in [0, 1.5] + ([3.5] if b % 2 else []):
-            place(drums, k_s, bt(b, kb), 0.55 if kb == 0 else 0.42)
-            kick_times.append(bt(b, kb))
-        if b >= 2:
-            place(drums, s_s, bt(b, 2), 0.32 if b < 4 else 0.40)
-            place(send, s_s, bt(b, 2), 0.12)
-        for e8 in range(8):
-            g = (0.2 if e8 % 2 else 0.12) * (0.8 if b < 4 else 1.0)
-            place(drums, _hat(), bt(b, e8 * 0.5 + (0.04 if e8 % 2 else 0)), g, 0.25)
-        if b >= 8 and b % 2 == 0:
-            place(drums, _hat(True), bt(b, 3.5), 0.07, 0.25)
+        if dr == "trap":                                   # 808: long notes, two per bar
+            for b_i, ln in [(0, 2.3), (2.5, 1.4)]:
+                place(bass, _bass(r, ln * beat), bt(b, b_i), M["bass"])
+        elif M["bass"] > 0:
+            for (b_i, ln) in [(0, 1.4), (1.5, 0.9), (2.5, 1.4)]:
+                place(bass, _bass(r, ln * beat), bt(b, b_i), M["bass"])
+        if dr == "groove":
+            for kb in [0, 1.5] + ([3.5] if b % 2 else []):
+                place(drums, k_s, bt(b, kb), 0.55 if kb == 0 else 0.42)
+                kick_times.append(bt(b, kb))
+            if b >= 2:
+                place(drums, s_s, bt(b, 2), 0.32 if b < 4 else 0.40)
+                place(send, s_s, bt(b, 2), 0.12)
+            for e8 in range(8):
+                g = (0.2 if e8 % 2 else 0.12) * (0.8 if b < 4 else 1.0)
+                place(drums, _hat(), bt(b, e8 * 0.5 + (0.04 if e8 % 2 else 0)), g, 0.25)
+            if b >= 8 and b % 2 == 0:
+                place(drums, _hat(True), bt(b, 3.5), 0.07, 0.25)
+        elif dr == "soft":
+            for kb in (0, 2.5):
+                place(drums, k_s, bt(b, kb), 0.38)
+                kick_times.append(bt(b, kb))
+            if b >= 1:
+                place(drums, s_s, bt(b, 2), 0.22)
+                place(send, s_s, bt(b, 2), 0.10)
+            for e8 in range(8):
+                place(drums, _hat(), bt(b, e8 * 0.5), 0.07 if e8 % 2 else 0.10, 0.25)
+        elif dr == "trap":
+            for kb in [0, 0.75] + ([2.75] if b % 2 else [3.25]):
+                place(drums, k_s, bt(b, kb), 0.6 if kb == 0 else 0.45)
+                kick_times.append(bt(b, kb))
+            place(drums, s_s, bt(b, 2), 0.45)
+            place(send, s_s, bt(b, 2), 0.10)
+            for s16 in range(16):
+                if b % 2 and s16 >= 12:                    # a triplet roll into every other bar
+                    continue
+                place(drums, _hat(), bt(b, s16 * 0.25), 0.16 if s16 % 2 else 0.22, 0.25)
+            if b % 2:
+                for k3 in range(6):
+                    place(drums, _hat(), bt(b, 3.0 + k3 / 6), 0.12 + 0.02 * k3, 0.25)
         up = [root + u for u in UPPER[ch]]
-        if b < 4:
-            pat = [(0, 0), (1, 2), (2, 1), (3, 3)]
-        else:
+        kk = M["keys"]
+        if kk == "chill":
+            if b < 4:
+                pat = [(0, 0), (1, 2), (2, 1), (3, 3)]
+            else:
+                order = [0, 2, 4, 2, 1, 3, 4, 3] if b % 2 == 0 else [4, 2, 3, 1, 2, 0, 3, 1]
+                pat = [(i * 0.5 + (0.04 if i % 2 else 0), order[i]) for i in range(8)]
+            for b_i, k in pat:
+                place(keys, _ep(mtof(up[k]), 0.75 + 0.25 * rng.random(), 1.4), bt(b, b_i), 0.11, rng.uniform(-0.35, 0.35))
+        elif kk == "sparse":                               # story: two soft notes a bar, ringing
+            for b_i, k in [(0, 0), (2, 2 if b % 2 else 3)]:
+                place(keys, _ep(mtof(up[k]), 0.55, 2.6), bt(b, b_i), 0.10, rng.uniform(-0.25, 0.25))
+        elif kk == "pluck":                                # teach: a steady 4-note figure
+            for b_i, k in [(0, 0), (1, 2), (2, 1), (3, 3)]:
+                place(keys, _ep(mtof(up[k]), 0.7, 0.9), bt(b, b_i), 0.10, rng.uniform(-0.3, 0.3))
+        elif kk == "piano":                                # emotional: quarter-note arpeggio, up front
+            for b_i, k in [(0, 0), (1, 2), (2, 4), (3, 2)]:
+                place(keys, _ep(mtof(up[k] - 12), 0.5 + 0.2 * rng.random(), 2.4), bt(b, b_i), 0.15, rng.uniform(-0.2, 0.2))
+        elif kk == "bell":                                 # energetic: high 8th-note bell line
             order = [0, 2, 4, 2, 1, 3, 4, 3] if b % 2 == 0 else [4, 2, 3, 1, 2, 0, 3, 1]
-            pat = [(i * 0.5 + (0.04 if i % 2 else 0), order[i]) for i in range(8)]
-        for b_i, k in pat:
-            place(keys, _ep(mtof(up[k]), 0.75 + 0.25 * rng.random(), 1.4), bt(b, b_i), 0.11, rng.uniform(-0.35, 0.35))
-    if nbars:
+            for i in range(8):
+                place(keys, bell(mtof(up[order[i]] + 12), 0.5), bt(b, i * 0.5), 0.05, rng.uniform(-0.35, 0.35))
+    if nbars and dr != "none":
         for i, b_i in enumerate([3.0, 3.25, 3.5, 3.75]):
             place(drums, s_s, bt(nbars - 1, b_i), 0.10 + 0.05 * i)
         place(sfx, whoosh(0.8, 0.62), resolve - 0.62, 0.20)
     # resolve
     ring = max(1.0, duration - resolve)
-    place(drums, k_s, resolve, 0.55)
-    kick_times.append(resolve)
-    place(bass, _bass(mtof(root - 12), min(2.2, ring)), resolve, 0.24)
-    for m in PAD["I"]:
+    if dr != "none":
+        place(drums, k_s, resolve, 0.55)
+        kick_times.append(resolve)
+    if M["bass"] > 0:
+        place(bass, _bass(mtof(root + ROOT[home]), min(2.2, ring)), resolve, M["bass"])
+    for m in PAD[home]:
         place(pad, _pad_note(mtof(root + m), min(2.4, ring), 1900), resolve - 0.03, 0.14)
-    for i, m in enumerate([root + 12, root + 16, root + 19, root + 23, root + 26]):
+    final = [root + 12, root + 16, root + 19, root + 23, root + 26] if home == "I" else [root + u - 12 for u in UPPER[home]]
+    for i, m in enumerate(final):
         place(keys, _ep(mtof(m), 0.8, 2.8), resolve + i * 0.045, 0.09, -0.3 + i * 0.15)
     # sidechain pump
     tt = np.arange(N) / SR

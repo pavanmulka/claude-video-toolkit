@@ -4,7 +4,8 @@ marks, pop-outs, device entrances and transitions.
 A preset turns progress p (0 -> 1, already eased) into a transform:
     {alpha, dx, dy, scale, sx, sy, rot, blur, reveal}
 dx/dy/blur are design px (multiply by the unit), rot is degrees, reveal is the visible fraction
-(left -> right) for wipes.
+(left -> right) for wipes. with_motion() adds motion blur from the move since the previous shutter
+(mbx/mby: design px travelled, mbs: previous / current scale); apply() smears the layer along it.
 """
 import math
 
@@ -111,7 +112,8 @@ def ease(name, x):
 # ------------------------------------------------------------------ presets
 # name -> (default easing, function(p) -> transform dict). p is the eased progress 0..1.
 def _t(**kw):
-    d = {"alpha": 1.0, "dx": 0.0, "dy": 0.0, "scale": 1.0, "sx": 1.0, "sy": 1.0, "rot": 0.0, "blur": 0.0, "reveal": 1.0}
+    d = {"alpha": 1.0, "dx": 0.0, "dy": 0.0, "scale": 1.0, "sx": 1.0, "sy": 1.0, "rot": 0.0, "blur": 0.0, "reveal": 1.0,
+         "mbx": 0.0, "mby": 0.0, "mbs": 1.0}
     d.update(kw)
     return d
 
@@ -144,7 +146,15 @@ PRESETS = {
     "type":        ("linear", lambda p, d: _t(alpha=1.0 if p > 0 else 0.0)),
     "glitch":      ("linear", lambda p, d: _t(alpha=1.0 if p > 0.08 else 0.0,
                                                dx=(0 if p > 0.6 else math.sin(p * 97) * d * 0.6))),
+    # fast kinetic moves (pair with motion_blur): a giant slam-down, growing out of a point, pass-through whips
+    "mega":        ("expo", lambda p, d: _t(alpha=clamp01(p * 12), scale=1 + 5.5 * (1 - p))),
+    "grow":        ("quint", lambda p, d: _t(alpha=clamp01(p * 6), scale=max(0.004, p))),
+    "whip_left":   ("expo", lambda p, d: _t(alpha=clamp01(p * 3), dx=(1 - p) * d * 7)),
+    "whip_right":  ("expo", lambda p, d: _t(alpha=clamp01(p * 3), dx=-(1 - p) * d * 7)),
+    "whip_up":     ("expo", lambda p, d: _t(alpha=clamp01(p * 3), dy=(1 - p) * d * 7)),
+    "whip_down":   ("expo", lambda p, d: _t(alpha=clamp01(p * 3), dy=-(1 - p) * d * 7)),
 }
+PASS_THROUGH = {"whip_left", "whip_right", "whip_up", "whip_down"}   # exits keep travelling the same way
 
 
 def transform(preset, p, dist=40.0, easing=None):
@@ -163,7 +173,23 @@ def exit_transform(preset, p, dist=40.0, easing=None):
     if not preset or preset == "none":
         return _t()
     name = preset if preset in PRESETS else "fade"
-    return PRESETS[name][1](1 - ease(easing or "in", p), dist)
+    tf = PRESETS[name][1](1 - ease(easing or "in", p), dist)
+    if name in PASS_THROUGH:
+        tf["dx"], tf["dy"] = -tf["dx"], -tf["dy"]
+    return tf
+
+
+def with_motion(tf, prev, strength=1.0):
+    """Attach motion blur: how far the layer travelled (and how much it scaled) since `prev`, the transform one
+    shutter earlier. strength scales the smear (the caller already sampled prev one shutter back)."""
+    out = dict(tf)
+    out["mbx"] = (tf["dx"] - prev["dx"]) * strength
+    out["mby"] = (tf["dy"] - prev["dy"]) * strength
+    s_now = tf["scale"] * math.sqrt(max(1e-6, tf["sx"] * tf["sy"]))
+    s_prev = prev["scale"] * math.sqrt(max(1e-6, prev["sx"] * prev["sy"]))
+    if s_now > 1e-3 and prev["alpha"] > 0.002:
+        out["mbs"] = 1 + (s_prev / s_now - 1) * strength
+    return out
 
 
 def idle(kind, t, amp=1.0, period=2.4):
@@ -198,13 +224,17 @@ def combine(*ts):
         out["rot"] += t["rot"]
         out["blur"] = max(out["blur"], t["blur"])
         out["reveal"] = min(out["reveal"], t["reveal"])
+        out["mbx"] += t.get("mbx", 0.0)
+        out["mby"] += t.get("mby", 0.0)
+        out["mbs"] *= t.get("mbs", 1.0)
     return out
 
 
 def is_identity(tf):
     return (tf["alpha"] >= 0.999 and abs(tf["dx"]) < 0.01 and abs(tf["dy"]) < 0.01 and abs(tf["scale"] - 1) < 1e-3
             and abs(tf["sx"] - 1) < 1e-3 and abs(tf["sy"] - 1) < 1e-3 and abs(tf["rot"]) < 0.01 and tf["blur"] < 0.05
-            and tf["reveal"] >= 0.999)
+            and tf["reveal"] >= 0.999 and abs(tf.get("mbx", 0)) < 0.5 and abs(tf.get("mby", 0)) < 0.5
+            and abs(tf.get("mbs", 1) - 1) < 2e-3)
 
 
 def apply(img, tf, unit=1.0):
@@ -229,6 +259,12 @@ def apply(img, tf, unit=1.0):
         out = out.resize((nw, nh), Image.BICUBIC)
     if abs(tf["rot"]) > 0.01:
         out = out.rotate(tf["rot"], resample=Image.BICUBIC, expand=True)
+    mbs = tf.get("mbs", 1.0)
+    if abs(mbs - 1) > 0.012:
+        out = zoom_blur(out, mbs)
+    mvx, mvy = tf.get("mbx", 0.0) * unit, tf.get("mby", 0.0) * unit
+    if math.hypot(mvx, mvy) > 1.5:
+        out = motion_blur(out, mvx, mvy)
     if tf["blur"] > 0.05:
         r = tf["blur"] * unit
         pad = int(r * 2.2) + 1
@@ -259,3 +295,76 @@ def _premul_blur(img, r):
 
 def premul_blur(img, r):
     return _premul_blur(img, r)
+
+
+def _premul_arr(img):
+    a = np.asarray(img, np.float32)
+    al = a[..., 3:4] / 255.0
+    return np.concatenate([a[..., :3] * al, a[..., 3:4]], axis=2)
+
+
+def _unpremul_img(pm):
+    al2 = np.maximum(pm[..., 3:4] / 255.0, 1e-4)
+    rgb = np.clip(pm[..., :3] / al2, 0, 255)
+    return Image.fromarray(np.concatenate([rgb, np.clip(pm[..., 3:4], 0, 255)], axis=2).astype(np.uint8), "RGBA")
+
+
+MAX_SMEAR = 900  # px: longest motion-blur streak
+
+
+def motion_blur(img, vx, vy):
+    """Directional motion blur of an RGBA layer that moved by (vx, vy) px during the shutter: the layer is smeared
+    back along its path (premultiplied, no dark fringes). The canvas grows symmetrically, so the centre stays put."""
+    import cv2
+    L = math.hypot(vx, vy)
+    if L > MAX_SMEAR:
+        vx, vy = vx * MAX_SMEAR / L, vy * MAX_SMEAR / L
+    px, py = int(math.ceil(abs(vx))) + 2, int(math.ceil(abs(vy))) + 2
+    big = Image.new("RGBA", (img.width + 2 * px, img.height + 2 * py), (0, 0, 0, 0))
+    big.paste(img, (px, py))
+    kw, kh = 2 * px + 1, 2 * py + 1
+    k = np.zeros((kh, kw), np.float32)
+    n = max(2, int(math.ceil(math.hypot(vx, vy) * 1.5)))
+    for s in np.linspace(0.0, 1.0, n):
+        # filter2D correlates: a tap at +s*v gives dst(x) = mean src(x + s*v), i.e. the layer's earlier positions
+        # (it was at -s*v) trail behind it
+        x, y = px + s * vx, py + s * vy
+        x0, y0 = int(math.floor(x)), int(math.floor(y))
+        fx, fy = x - x0, y - y0
+        for (xx, yy, w) in ((x0, y0, (1 - fx) * (1 - fy)), (x0 + 1, y0, fx * (1 - fy)), (x0, y0 + 1, (1 - fx) * fy), (x0 + 1, y0 + 1, fx * fy)):
+            if 0 <= xx < kw and 0 <= yy < kh:
+                k[yy, xx] += w
+    k /= max(1e-6, k.sum())
+    pm = cv2.filter2D(_premul_arr(big), -1, k, borderType=cv2.BORDER_CONSTANT)
+    return _unpremul_img(pm)
+
+
+def zoom_blur(img, ratio, samples=None):
+    """Radial (zoom) blur of an RGBA layer whose scale changed: ratio = previous / current scale (> 1: it was bigger,
+    it is shrinking). Averages copies scaled between 1 and ratio about the centre; the canvas grows to hold them."""
+    ratio = min(3.0, max(0.33, ratio))
+    w0, h0 = img.size
+    big_r = max(1.0, ratio)
+    W, H = int(math.ceil(w0 * big_r)) + 2, int(math.ceil(h0 * big_r)) + 2
+    # very large layers (a giant slam) and long streaks are blurred at a reduced size: the streaks hide the softness
+    d = abs(ratio - 1) * max(W, H) / 2
+    k = min(1.0, 2600.0 / max(W, H), max(0.2, 80.0 / d) if d > 0 else 1.0)
+    Wk, Hk = max(2, int(W * k)), max(2, int(H * k))
+    # enough copies that neighbours sit ~2.5 px apart at the layer's edge (no visible ghost steps)
+    n = samples or int(min(48, max(4, abs(ratio - 1) * max(Wk, Hk) / 2 / 2.5)))
+    acc = np.zeros((Hk, Wk, 4), np.float32)
+    base = img if k >= 0.999 else img.resize((max(1, int(w0 * k)), max(1, int(h0 * k))), Image.BILINEAR)
+    for f in np.linspace(1.0, ratio, n):
+        cw, ch = max(1, int(round(base.width * f))), max(1, int(round(base.height * f)))
+        im = base.resize((cw, ch), Image.BILINEAR)
+        x, y = (Wk - cw) // 2, (Hk - ch) // 2
+        a = _premul_arr(im)
+        xs0, ys0 = max(0, -x), max(0, -y)
+        xd0, yd0 = max(0, x), max(0, y)
+        ww, hh = min(cw - xs0, Wk - xd0), min(ch - ys0, Hk - yd0)
+        if ww > 0 and hh > 0:
+            acc[yd0:yd0 + hh, xd0:xd0 + ww] += a[ys0:ys0 + hh, xs0:xs0 + ww]
+    out = _unpremul_img(acc / n)
+    if k < 0.999:
+        out = out.resize((W, H), Image.BILINEAR)
+    return out

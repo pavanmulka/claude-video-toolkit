@@ -121,7 +121,7 @@ def sample_video(families):
                  "style": {"family": fam, "weight": 800, "size": 128, "color": "#FFFFFF", "max_width": 960, "line_height": 1.05}},
                 {"text": "The quick brown fox jumps over the lazy dog", "pos": ["50%", "47%"], "fade": 0.15,
                  "style": {"family": fam, "weight": 400, "size": 64, "color": "#E8E8EE", "max_width": 900, "line_height": 1.2}},
-                {"text": "Your mom isn't a **folder.**", "pos": ["50%", "62%"], "fade": 0.15,
+                {"text": "Your notes aren't a **plan.**", "pos": ["50%", "62%"], "fade": 0.15,
                  "style": {"family": fam, "weight": 700, "size": 76, "color": "#FFFFFF", "accent": "#61F0EA", "max_width": 940}},
                 {"text": "Regular 400 · Bold 700 · Black 900 · 0123456789", "pos": ["50%", "72%"], "fade": 0.15,
                  "style": {"family": fam, "weight": 600, "size": 38, "color": "#9A9AA8", "max_width": 940}},

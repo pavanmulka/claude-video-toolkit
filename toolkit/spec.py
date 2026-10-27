@@ -14,47 +14,58 @@ ASPECTS = {"9:16": (1080, 1920), "1:1": (1080, 1080), "4:5": (1080, 1350), "16:9
 KEYS = {
     "top": {"version", "name", "brand", "theme", "look", "output", "sources", "defaults", "timeline", "overlays", "captions", "audio",
             "variants", "notes"},
-    "output": {"file", "aspect", "width", "height", "fps", "crf", "preset", "loudness", "platforms", "fade_in", "fade_out", "srt", "loop"},
-    "defaults": {"layout", "transition", "background", "text_style", "text_pos", "text_anim", "drift", "enter", "autozoom"},
+    "output": {"file", "aspect", "width", "height", "fps", "crf", "preset", "loudness", "platforms", "fade_in", "fade_out", "srt", "loop",
+               "carousel"},
+    "carousel": {"format", "at", "quality"},
+    "defaults": {"layout", "transition", "background", "text_style", "text_pos", "text_anim", "drift", "enter", "autozoom",
+                 "motion_blur", "pointer"},
     "section": {"section", "text", "text_style", "text_pos", "text_anim", "clips", "overlays", "layout", "background",
-                "dur", "beats", "fit", "drift", "enter", "autozoom", "notes"},
+                "dur", "beats", "fit", "drift", "enter", "autozoom", "notes", "montage", "slide_at", "reveal", "pointer"},
     "clip": {"src", "still", "image", "color", "motion", "props", "transparent", "in", "out", "dur", "speed", "ramp", "hold",
              "hold_start", "camera", "zoom", "focus", "pan", "tilt", "rotate", "drift", "dim", "vignette", "layout", "background",
-             "transition", "sfx", "id", "audio", "enter", "taps", "lifts", "marks", "autozoom", "notes"},
-    "tap": {"src", "at", "pos", "sound", "volume"},
+             "transition", "sfx", "id", "audio", "enter", "taps", "lifts", "marks", "redact", "autozoom", "notes", "reveal",
+             "pointer"},
+    "tap": {"src", "at", "pos", "sound", "volume", "hold", "drag", "drag_dur"},
+    "pointer": {"style", "size", "color", "enter", "exit", "travel", "ring"},
     "camkey": {"t", "zoom", "focus", "pan", "tilt", "rotate", "ease"},
-    "transition": {"type", "dur", "color", "dir", "ease", "pos", "sfx", "volume"},
+    "transition": {"type", "dur", "color", "dir", "ease", "pos", "sfx", "volume", "carry", "shape", "from", "to", "hold", "radius"},
     "enter": {"rise", "dur", "fade", "tilt", "rotate", "scale", "ease"},
     "lift": {"rect", "src", "at", "in", "hold", "out", "scale", "to", "up", "radius", "shadow", "border", "border_width", "dim",
              "ease", "exit", "notes"},
+    "redact": {"rect", "src", "at", "dur", "style", "strength", "color", "radius", "notes"},
     "mark": {"type", "rect", "pos", "size", "src", "at", "dur", "draw", "delay", "color", "width", "hand", "pad", "radius", "glow",
              "ease", "label", "label_style", "label_side", "side", "length", "from", "to", "opacity", "strength", "fade_out", "seed",
-             "notes"},
+             "clip", "notes"},
     "overlay": {"text", "image", "counter", "mark", "video", "motion", "props", "start", "end", "dur", "pos", "anchor", "style", "size",
-                "fade", "rise", "opacity", "anim", "shine", "in", "speed", "layout", "notes"},
-    "counter": {"from", "to", "format", "decimals", "prefix", "suffix", "dur", "delay", "ease", "symbol"},
-    "anim": {"in", "out", "dur", "out_dur", "ease", "idle", "idle_amp", "idle_period", "dist", "by", "stagger", "caret"},
-    "captions": {"from", "style", "pos", "max_words", "max_chars", "offset", "enabled", "replace", "anim", "skip", "skip_text"},
+                "fade", "rise", "opacity", "anim", "shine", "in", "speed", "layout", "notes", "behind"},
+    "counter": {"from", "to", "format", "decimals", "prefix", "suffix", "dur", "delay", "ease", "symbol", "text", "values"},
+    "anim": {"in", "out", "dur", "out_dur", "ease", "idle", "idle_amp", "idle_period", "dist", "by", "stagger", "caret", "strike_at",
+             "motion_blur", "sync", "zoom", "pop", "upcoming", "upcoming_at"},
+    "captions": {"from", "style", "pos", "max_words", "max_chars", "offset", "enabled", "replace", "anim", "skip", "skip_text",
+                 "script"},
     "audio": {"voiceover", "music", "sfx", "tracks", "loudness"},
     "voiceover": {"file", "start", "speed", "max_pause", "volume", "fade_in", "fade_out", "trim", "denoise", "language", "place", "fx", "cut"},
     "music": {"file", "generate", "volume", "start", "offset", "fade_in", "fade_out", "duck", "loop", "end", "bpm"},
     "generate": {"bpm", "key", "drop", "resolve", "seed", "mood"},
     "sfx": {"sound", "at", "src", "volume", "align", "pan"},
-    "track": {"file", "at", "volume", "fx", "fade_in", "fade_out", "trim", "loop", "dur", "pan", "duck", "notes"},
+    "track": {"file", "at", "volume", "fx", "fade_in", "fade_out", "trim", "loop", "dur", "pan", "duck", "voice", "notes"},
     "layout": {"type", "style", "width", "top", "height", "center_y", "center_x", "finish", "island", "shadow", "bezel", "buttons",
+               "device", "camera",
                "x", "y", "w", "h", "radius", "status_cut", "pos", "border", "border_width", "focus",
                "plate", "plate_in", "plate_speed", "key", "zoom", "inset", "screen_dim", "push"},
     "background": {"type", "color", "dim", "tint", "top", "bottom", "file", "blur", "colors", "base", "speed", "size", "seed", "glows",
                    "accent", "accent2", "stars", "stars_amount", "line", "line_opacity", "spacing", "glow", "dot", "dot_opacity",
-                   "color2", "count", "center", "grain", "pos", "radius", "strength", "angle"},
+                   "color2", "count", "center", "grain", "pos", "radius", "strength", "angle", "blobs"},
     "text_anim": {"in", "out", "rise", "pop", "by", "effect", "stagger", "ease", "out_effect", "idle", "idle_amp", "line_delay",
-                  "caret", "dist", "sfx", "sfx_volume", "sfx_at", "strike_at"},
+                  "caret", "dist", "sfx", "sfx_volume", "sfx_at", "strike_at", "motion_blur", "delay", "sync", "zoom", "pop", "upcoming", "upcoming_at"},
     "text": {"content", "style", "pos", "behind"},
     "look": {"grain", "vignette", "contrast", "saturation", "brightness", "gamma", "warmth", "lift", "sharpen", "chroma", "bloom"},
 }
-LAYOUTS = {"iphone", "card", "fullbleed", "fit", "plate"}
-TRANSITIONS = {"cut", "crossfade", "dip", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash"}
-BACKGROUNDS = {"blur", "color", "gradient", "image", "mesh", "glow", "paper", "grid", "dots", "rays", "aurora", "noise", "spotlight"}
+LAYOUTS = {"iphone", "android", "card", "fullbleed", "fit", "plate"}
+TRANSITIONS = {"cut", "crossfade", "dip", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash", "shrink",
+               "grow", "flood"}
+BACKGROUNDS = {"blur", "color", "gradient", "image", "mesh", "glow", "paper", "grid", "dots", "rays", "aurora", "noise", "spotlight",
+               "polar"}
 MARKS = {"circle", "underline", "strike", "highlight", "box", "brackets", "arrow", "check", "cross", "ping", "spotlight", "scribble", "dot"}
 OVERLAY_KINDS = ("text", "image", "counter", "mark", "video", "motion")
 VOICE_FX = {"phone", "radio", "megaphone", "small_speaker", "cabin", "reverb", "hall", "underwater", "walkie", "whisper", "none"}
@@ -71,6 +82,7 @@ class V:
 
     def __init__(self):
         self.errors, self.warnings = [], []
+        self.check_files = True
 
     def err(self, path, msg):
         self.errors.append(f"{path}: {msg}")
@@ -148,6 +160,7 @@ def load(path, check_files=True, variant=None, aspect=None):
         raise SpecError([f"{path.name}: YAML syntax error: {e}"])
     v = V()
     v.spec_dir = path.parent
+    v.check_files = check_files
     if not v.keys("spec", raw or {}, "top"):
         raise SpecError(v.errors)
     raw = raw or {}
@@ -205,7 +218,7 @@ def load(path, check_files=True, variant=None, aspect=None):
     output = {"file": out_path, "aspect": aspect, "W": W, "H": H, "fps": fps, "crf": o.get("crf", 16),
               "preset": o.get("preset", "slow"), "loudness": loud, "platforms": platforms,
               "fade_in": o.get("fade_in", 0.0), "fade_out": o.get("fade_out", 0.0), "unit": min(W, H) / 1080.0,
-              "loop": o.get("loop")}
+              "loop": o.get("loop"), "carousel": o.get("carousel")}
 
     # ---- sources
     sources = {}
@@ -224,8 +237,18 @@ def load(path, check_files=True, variant=None, aspect=None):
             near = difflib.get_close_matches(fp.name, [p.name for p in fp.parent.glob("*")], n=1) if fp.parent.exists() else []
             v.err(f"sources.{k}", f"file not found: {fp}" + (f" (did you mean '{near[0]}'?)" if near else ""))
             continue
-        info = probe(fp) if fp.exists() else {"duration": 0, "kind": kind_of(fp)}
+        info = probe(fp) if fp.exists() else {"duration": None, "kind": kind_of(fp)}   # not probed (check_files=False)
         sources[k] = {"path": fp, "info": info}
+
+    car = (raw.get("output") or {}).get("carousel")
+    if isinstance(car, dict):
+        if v.keys("output.carousel", car, "carousel"):
+            if car.get("format") not in (None, "jpg", "png"):
+                v.err("output.carousel.format", "must be jpg | png")
+            v.num("output.carousel.at", car.get("at"), 0.0, 1.0)
+            v.num("output.carousel.quality", car.get("quality"), 50, 100)
+    elif car not in (None, True, False):
+        v.err("output.carousel", "true or {format: jpg|png, at: 0.85, quality: 93}")
 
     # ---- defaults (brand / theme defaults under the spec's own)
     dfl = raw.get("defaults") or {}
@@ -235,6 +258,7 @@ def load(path, check_files=True, variant=None, aspect=None):
         _check_background(v, "defaults.background", dfl["background"])
     if dfl.get("enter"):
         v.keys("defaults.enter", dfl["enter"], "enter")
+    v.num("defaults.motion_blur", dfl.get("motion_blur"), 0, 4)
 
     # ---- timeline
     tl = raw.get("timeline")
@@ -248,6 +272,16 @@ def load(path, check_files=True, variant=None, aspect=None):
         if not v.keys(sp, sec, "section"):
             continue
         sp = f"timeline[{si}]({sec.get('section', si)})"
+        if sec.get("montage") is not None:           # beat-synced montage -> clips (toolkit/montage.py)
+            from . import montage as montagemod
+            mg = sec["montage"] if isinstance(sec["montage"], dict) else {}
+            bad = set(mg) - montagemod.KEYS
+            if bad:
+                v.err(f"{sp}.montage", f"unknown key(s) {sorted(bad)} (allowed: {sorted(montagemod.KEYS)})")
+            try:
+                sec = dict(sec, clips=(sec.get("clips") or []) + montagemod.expand(mg, raw, path.parent, brand["_dir"]))
+            except ValueError as e:
+                v.err(f"{sp}.montage", str(e))
         clips = sec.get("clips")
         if not isinstance(clips, list) or not clips:
             v.err(f"{sp}.clips", "needs at least one clip")
@@ -255,12 +289,15 @@ def load(path, check_files=True, variant=None, aspect=None):
         _check_layout(v, f"{sp}.layout", sec.get("layout"), brand)
         v.num(f"{sp}.dur", sec.get("dur"), 0.05)
         v.num(f"{sp}.beats", sec.get("beats"), 0.25)
+        v.num(f"{sp}.slide_at", sec.get("slide_at"), 0.0)
         if sec.get("background"):
             _check_background(v, f"{sp}.background", sec["background"])
         if sec.get("text_anim"):
             _check_text_anim(v, f"{sp}.text_anim", sec["text_anim"])
         if sec.get("enter"):
             v.keys(f"{sp}.enter", sec["enter"], "enter")
+        if "reveal" in sec:
+            _check_reveal(v, f"{sp}.reveal", sec["reveal"])
         if sec.get("fit") not in (None, "hold", "extend", "trim"):
             v.err(f"{sp}.fit", "must be hold | extend | trim")
         if sec.get("text") not in (None, "none") and sec.get("text_style"):
@@ -306,6 +343,10 @@ def load(path, check_files=True, variant=None, aspect=None):
         if cap.get("skip_text") is not None:
             if not isinstance(cap["skip_text"], list) or not all(isinstance(x, str) and x.strip() for x in cap["skip_text"]):
                 v.err("captions.skip_text", "must be a list of spoken phrases whose captions are hidden, e.g. [\"No app does it like this\"]")
+        if cap.get("script") is not None:
+            sc = cap["script"]
+            if not (isinstance(sc, str) and sc.strip()) and not (isinstance(sc, list) and sc and all(isinstance(x, str) for x in sc)):
+                v.err("captions.script", "must be the exact spoken text (a string, or a list of lines), e.g. \"Share. Mail. Sent.\"")
 
     # ---- audio
     au = raw.get("audio") or {}
@@ -337,6 +378,9 @@ def load(path, check_files=True, variant=None, aspect=None):
         v.keys("audio.music", mu, "music")
         if mu.get("generate") is not None:
             v.keys("audio.music.generate", mu["generate"] or {}, "generate")
+            md = (mu["generate"] or {}).get("mood")
+            if md is not None and md not in ("chill", "story", "teach", "vlog", "emotional", "energetic"):
+                v.err("audio.music.generate.mood", f"unknown mood '{md}' (chill, story, teach, vlog, emotional, energetic)")
         elif mu.get("file"):
             named = brandmod.music_path(brand, mu["file"])
             fp = named or expand(mu["file"])
@@ -390,6 +434,10 @@ def _check_layout(v, path, lay, brand):
         v.keys(path, lay, "layout")
     if t not in LAYOUTS:
         v.err(path, f"unknown layout '{t}' (use {', '.join(sorted(LAYOUTS))})")
+    if isinstance(lay, dict) and lay.get("device", "iphone") not in ("iphone", "android"):
+        v.err(f"{path}.device", "must be iphone | android (or use type: android)")
+    if isinstance(lay, dict) and lay.get("camera", "auto") not in ("auto", "on", "off"):
+        v.err(f"{path}.camera", "must be auto (over the recording's own punch-hole, else a default one) | on | off")
     if t == "plate" and isinstance(lay, dict):
         if not lay.get("plate"):
             v.err(f"{path}.plate", "required: the source name of the phone plate (a hand holding a phone with a green screen)")
@@ -417,12 +465,12 @@ def _check_clip(v, cp, c, sources, brand, ids):
             return c
         if st["src"] not in sources:
             v.err(f"{cp}.still.src", f"unknown source '{st['src']}' (have: {', '.join(sources)})")
-        elif st.get("at", 0) > sources[st["src"]]["info"]["duration"] + 1e-3:
+        elif sources[st["src"]]["info"]["duration"] is not None and st.get("at", 0) > sources[st["src"]]["info"]["duration"] + 1e-3:
             v.err(f"{cp}.still.at", f"{st.get('at')} is past the end of '{st['src']}' ({sources[st['src']]['info']['duration']:.2f}s)")
         if not c.get("dur"):
             v.err(f"{cp}.dur", "stills need dur:")
     elif "image" in c:
-        if not any(expand(c["image"], b).exists() for b in (v.spec_dir, brand["_dir"], *BRANDS, INBOX)):
+        if v.check_files and not any(expand(c["image"], b).exists() for b in (v.spec_dir, brand["_dir"], *BRANDS, INBOX)):
             v.err(f"{cp}.image", f"file not found: {c['image']} (looked in the spec folder, the brand folder, workspace/brand/, brand/, inbox/)")
         if not c.get("dur"):
             v.err(f"{cp}.dur", "images need dur:")
@@ -441,9 +489,9 @@ def _check_clip(v, cp, c, sources, brand, ids):
             v.num(f"{cp}.out", c["out"], 0)
             if isinstance(c["out"], (int, float)) and c["out"] <= a:
                 v.err(f"{cp}.out", f"out ({c['out']}) must be after in ({a})")
-            if isinstance(c["out"], (int, float)) and c["out"] > dur + 0.02:
+            if isinstance(c["out"], (int, float)) and dur is not None and c["out"] > dur + 0.02:
                 v.err(f"{cp}.out", f"{c['out']} exceeds source '{s}' duration {dur:.2f}s")
-        if isinstance(a, (int, float)) and a >= dur:
+        if isinstance(a, (int, float)) and dur is not None and a >= dur:
             v.err(f"{cp}.in", f"{a} is past the end of source '{s}' ({dur:.2f}s)")
         if "speed" in c and "ramp" in c:
             v.err(cp, "use either speed: or ramp:, not both")
@@ -460,12 +508,21 @@ def _check_clip(v, cp, c, sources, brand, ids):
         _check_background(v, f"{cp}.background", c["background"])
     if c.get("enter"):
         v.keys(f"{cp}.enter", c["enter"], "enter")
+    if "reveal" in c:
+        _check_reveal(v, f"{cp}.reveal", c["reveal"])
     for li, L in enumerate(c.get("lifts") or []):
         if v.keys(f"{cp}.lifts[{li}]", L, "lift"):
             if not (isinstance(L.get("rect"), list) and len(L["rect"]) == 4):
                 v.err(f"{cp}.lifts[{li}].rect", "needs rect: [x, y, w, h] in source px")
             if "src" not in L and "at" not in L:
                 v.err(f"{cp}.lifts[{li}]", "needs src: (source time) or at: (seconds into the clip)")
+    for ri, R in enumerate(c.get("redact") or []):
+        if v.keys(f"{cp}.redact[{ri}]", R, "redact"):
+            if not (isinstance(R.get("rect"), list) and len(R["rect"]) == 4):
+                v.err(f"{cp}.redact[{ri}].rect", "needs rect: [x, y, w, h] in source px")
+            if R.get("style", "blur") not in ("blur", "pixelate", "fill"):
+                v.err(f"{cp}.redact[{ri}].style", "use blur | pixelate | fill")
+            v.num(f"{cp}.redact[{ri}].dur", R.get("dur"), 0)
     for mi, m in enumerate(c.get("marks") or []):
         if v.keys(f"{cp}.marks[{mi}]", m, "mark"):
             if m.get("type") not in MARKS:
@@ -486,6 +543,12 @@ def _check_clip(v, cp, c, sources, brand, ids):
             v.keys(f"{cp}.transition", tr, "transition")
         if t not in TRANSITIONS:
             v.err(f"{cp}.transition", f"unknown transition '{t}' (use {', '.join(sorted(TRANSITIONS))})")
+        if t == "flood" and isinstance(tr, dict):
+            for k in ("from", "to"):
+                if tr.get(k) is not None and not (isinstance(tr[k], list) and len(tr[k]) in (2, 4)):
+                    v.err(f"{cp}.transition.{k}", "expected [x, y] (a point) or [x, y, w, h] (a rect), design px or \"NN%\"")
+            if tr.get("shape", "circle") not in ("circle", "squircle", "rect"):
+                v.err(f"{cp}.transition.shape", "use circle | squircle | rect")
     cam = c.get("camera")
     if cam is not None:
         if not isinstance(cam, list):
@@ -500,6 +563,18 @@ def _check_clip(v, cp, c, sources, brand, ids):
         v.keys(f"{cp}.taps[{ti}]", t, "tap")
         if "pos" not in t or ("src" not in t and "at" not in t):
             v.err(f"{cp}.taps[{ti}]", "needs pos: [x, y] (source px) and src: (source time) or at: (seconds into the clip)")
+        if t.get("drag") is not None and not (isinstance(t["drag"], list) and len(t["drag"]) == 2):
+            v.err(f"{cp}.taps[{ti}].drag", "expected [x, y] (source px): where the finger / cursor lets go")
+    pt = c.get("pointer")
+    if pt not in (None, False, True):
+        if isinstance(pt, str):
+            pt = {"style": pt}
+        if not isinstance(pt, dict):
+            v.err(f"{cp}.pointer", "expected true, touch | cursor, or {style, size, color, enter, exit, travel, ring}")
+        else:
+            v.keys(f"{cp}.pointer", pt, "pointer")
+            if pt.get("style", "touch") not in ("touch", "cursor"):
+                v.err(f"{cp}.pointer.style", "use touch | cursor")
     for si, s in enumerate(c.get("sfx") or []):
         v.keys(f"{cp}.sfx[{si}]", s, "sfx")
         if not brandmod.sound_path(brand, s.get("sound", "")).exists():
@@ -512,6 +587,8 @@ def _check_clip(v, cp, c, sources, brand, ids):
 def _check_overlay(v, path, ov, brand, sources=None):
     if not v.keys(path, ov, "overlay"):
         return
+    if ov.get("behind") not in (None, False, "subject", "person"):
+        v.err(f"{path}.behind", "must be subject (any foreground: a person, a hand + phone, an object) or person")
     kinds = [k for k in OVERLAY_KINDS if k in ov]
     if len(kinds) != 1:
         v.err(path, "needs exactly one of " + " / ".join(f"{k}:" for k in OVERLAY_KINDS))
@@ -523,9 +600,18 @@ def _check_overlay(v, path, ov, brand, sources=None):
         _check_style(v, f"{path}.style", ov["style"], brand)
     if kind == "counter":
         if v.keys(f"{path}.counter", ov["counter"], "counter"):
-            for k in ("from", "to"):
-                if not isinstance(ov["counter"].get(k), (int, float)):
-                    v.err(f"{path}.counter.{k}", "required number")
+            c = ov["counter"]
+            if c.get("values") is not None:
+                vals = c["values"]
+                if (not isinstance(vals, list) or not vals
+                        or not all(isinstance(x, (list, tuple)) and len(x) == 2 and all(isinstance(y, (int, float)) for y in x) for x in vals)):
+                    v.err(f"{path}.counter.values", "expected a list of [from, to] pairs, e.g. [[29, 25], [49, 44]]")
+                elif c.get("text") is not None and str(c["text"]).count("{}") != len(vals):
+                    v.err(f"{path}.counter.text", f"needs one {{}} per value ({len(vals)}), e.g. \"{{}} to {{}}\\nyears old\"")
+            else:
+                for k in ("from", "to"):
+                    if not isinstance(c.get(k), (int, float)):
+                        v.err(f"{path}.counter.{k}", "required number (or values: [[from, to], ...] with text: \"{} to {}\")")
             if ov["counter"].get("format") not in (None, "int", "decimal", "percent", "currency", "time", "comma"):
                 v.err(f"{path}.counter.format", "must be int | decimal | percent | currency | time | comma")
     if kind == "mark":
@@ -541,8 +627,8 @@ def _check_overlay(v, path, ov, brand, sources=None):
         lay = ov.get("layout")
         if isinstance(lay, dict):
             v.keys(f"{path}.layout", lay, "layout")
-            if lay.get("type", "card") not in ("card", "circle", "iphone", "rect"):
-                v.err(f"{path}.layout.type", "must be card | circle | iphone | rect")
+            if lay.get("type", "card") not in ("card", "circle", "iphone", "android", "rect"):
+                v.err(f"{path}.layout.type", "must be card | circle | iphone | android | rect")
     if kind == "motion":
         _check_motion(v, f"{path}.motion", ov["motion"], ov.get("props"))
     a = ov.get("anim")
@@ -553,6 +639,7 @@ def _check_overlay(v, path, ov, brand, sources=None):
                 v.err(f"{path}.anim.{k}", f"unknown animation '{a[k]}' (use {', '.join(sorted(anim.PRESETS))})")
         if a.get("idle") and a["idle"] not in ("float", "wiggle", "pulse", "breathe", "spin", "shake"):
             v.err(f"{path}.anim.idle", "must be float | wiggle | pulse | breathe | spin | shake")
+        v.num(f"{path}.anim.motion_blur", a.get("motion_blur"), 0, 4)
     elif isinstance(a, str) and a not in anim.PRESETS:
         v.err(f"{path}.anim", f"unknown animation '{a}' (use {', '.join(sorted(anim.PRESETS))})")
 
@@ -576,6 +663,31 @@ def _check_text_anim(v, path, a):
             v.err(f"{path}.{k}", f"unknown animation '{a[k]}' (use {', '.join(sorted(anim.PRESETS))})")
     if a.get("ease") and a["ease"] not in anim.EASINGS:
         v.err(f"{path}.ease", f"unknown easing (use {', '.join(sorted(anim.EASINGS))})")
+    v.num(f"{path}.motion_blur", a.get("motion_blur"), 0, 4)
+    v.num(f"{path}.delay", a.get("delay"), 0)
+
+
+def _check_reveal(v, path, rv):
+    from . import reveal
+    if rv in (None, False, True, "none", "off"):
+        return
+    if isinstance(rv, str):
+        rv = {"shape": rv}
+    if not isinstance(rv, dict):
+        v.err(path, "expected true, a shape name or {shape, count, pattern, lead, burst, grow, ...}")
+        return
+    bad = set(rv) - reveal.KEYS
+    for k in sorted(bad):
+        sug = difflib.get_close_matches(k, reveal.KEYS, n=1)
+        v.err(f"{path}.{k}", "unknown field" + (f" (did you mean '{sug[0]}'?)" if sug else f" (allowed: {', '.join(sorted(reveal.KEYS))})"))
+    if rv.get("shape", "circle") not in reveal.SHAPES:
+        v.err(f"{path}.shape", f"must be one of {', '.join(reveal.SHAPES)}")
+    if rv.get("pattern", "row") not in reveal.PATTERNS:
+        v.err(f"{path}.pattern", f"must be one of {', '.join(reveal.PATTERNS)}")
+    v.num(f"{path}.count", rv.get("count"), 1, 24)
+    for k in ("lead", "burst", "grow", "size", "motion_blur"):
+        v.num(f"{path}.{k}", rv.get(k), 0)
+    v.num(f"{path}.zoom", rv.get("zoom"), 0.5, 2)
 
 
 def _check_motion(v, path, mid, props):

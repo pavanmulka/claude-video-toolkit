@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 
+import math
+
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -162,17 +164,27 @@ FLAGS = {"**": "accent", "~~": "strike", "==": "marker", "__": "underline"}
 def parse_markup(text):
     """'Start with **one.**\\nNext' -> tokens [{'t':'Start'},{'t':'with'},{'t':'one.','accent':1},{'nl':1},...]."""
     tokens, on = [], {v: False for v in FLAGS.values()}
+    last = None                      # last raw character of text before this part (glue words split only by markup)
     for part in MARK_RE.split(str(text)):
         if part in FLAGS:
             on[FLAGS[part]] = not on[FLAGS[part]]
         elif part == "\n":
             tokens.append({"nl": True})
+            last = "\n"
         elif part.startswith("[[img:"):
             tokens.append({"t": "□", "img": part[6:-2].strip(), **{k: v for k, v in on.items() if v}})
+            last = "]"
         else:
+            first = True
             for w in part.split(" "):
                 if w:
-                    tokens.append({"t": w, **{k: v for k, v in on.items() if v}})
+                    tk = {"t": w, **{k: v for k, v in on.items() if v}}
+                    if first and part[:1] != " " and last not in (None, " ", "\n") and tokens and not tokens[-1].get("nl"):
+                        tk["glue"] = True         # "**one place**." -> "one place." (no space before the full stop)
+                    tokens.append(tk)
+                first = False
+            if part:
+                last = part[-1]
     return tokens
 
 
@@ -222,7 +234,7 @@ class Layout:
         self.spacing = st.get("letter_spacing", 0.0) * size
         max_w = st.get("max_width", 10000) * scale
         self.line_px = st.get("line_height", 1.12) * size
-        self.space = self.font.getlength(" ") + self.spacing
+        self.space = self.font.getlength(" ") + self.spacing + st.get("word_spacing", 0.0) * size   # extra gap (em)
         lines, cur, cur_w = [], [], 0.0
         for tk in tokens:
             if tk.get("nl"):
@@ -231,8 +243,8 @@ class Layout:
                 continue
             s = self.tr(tk["t"])
             w = self.width(s, tk)
-            add = w if not cur else self.space + w
-            if cur and cur_w + add > max_w:
+            add = w if not cur else (0 if tk.get("glue") else self.space) + w
+            if cur and cur_w + add > max_w and not tk.get("glue"):
                 lines.append((cur, cur_w))
                 cur, cur_w = [], 0.0
                 add = w
@@ -250,6 +262,9 @@ class Layout:
             extra = sh.get("blur", 0) * 2.5 * scale + abs(sh.get("dy", 0)) * scale
         if gl:
             extra = max(extra, gl.get("blur", 18) * 2.5 * scale)
+        ex = st.get("extrude")
+        if ex:
+            extra += ex.get("depth", 14) * scale * 1.1
         self.pad = int(max(self.bpx, self.bpy) + extra + self.sw + 8)
         self.content_w = max(w for _, w in self.lines)
         self.content_h = self.line_px * len(self.lines)
@@ -264,7 +279,7 @@ class Layout:
             top = self.y0c + li * self.line_px
             baseline = top + (self.line_px - (self.asc + self.desc)) / 2 + self.asc
             for wi, (s, w, tk) in enumerate(words):
-                if wi:
+                if wi and not tk.get("glue"):
                     x += self.space
                 self.words.append({"s": s, "tk": tk, "x": x, "top": top, "baseline": baseline, "w": w, "line": li,
                                    "index": len(self.words), "first": wi == 0, "last": wi == len(words) - 1})
@@ -440,9 +455,45 @@ def _draw_boxes(d, L, words_filter=None, containers=True, chips=True):
                                 fill=color(ab.get("color", "#FFD84D"), pal, ab.get("opacity", 1.0)))
 
 
+def _extrude(img, L):
+    """3D block letters: the glyphs' own shape pushed back `depth` px along `angle` (degrees, 0 = right, 90 = down),
+    in `color` shading to `color2` at the back, with an optional `outline` around the whole block."""
+    ex, pal, scale = L.st.get("extrude"), L.palette, L.scale
+    n = max(1, int(round(ex.get("depth", 14) * scale)))
+    ang = math.radians(ex.get("angle", 90))
+    dx, dy = math.cos(ang), math.sin(ang)
+    a = np.asarray(img.split()[3], np.float32) / 255.0
+    H, W = a.shape
+    side = np.zeros((H, W), np.float32)
+    depth = np.zeros((H, W), np.float32)
+    for i in range(1, n + 1):
+        ox, oy = int(round(dx * i)), int(round(dy * i))
+        sh = np.zeros_like(a)
+        sh[max(0, oy):H + min(0, oy), max(0, ox):W + min(0, ox)] = a[max(0, -oy):H - max(0, oy), max(0, -ox):W - max(0, ox)]
+        newer = sh > side
+        depth[newer] = i / n
+        side = np.maximum(side, sh)
+    c1 = np.array(color(ex.get("color", "#7A1E00"), pal)[:3], np.float32)
+    c2 = np.array(color(ex.get("color2", None) or ex.get("color", "#7A1E00"), pal)[:3], np.float32) * (1.0 if ex.get("color2") else 0.62)
+    rgb = c1[None, None] * (1 - depth[..., None]) + c2[None, None] * depth[..., None]
+    block = Image.fromarray(np.dstack([rgb, side * 255]).astype(np.uint8), "RGBA")
+    if ex.get("outline"):
+        ol = ex["outline"] if isinstance(ex["outline"], dict) else {}
+        w = max(1, int(round(ol.get("width", 5) * scale)))
+        full = Image.fromarray((np.maximum(side, a) * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(2 * w + 1))
+        o = Image.new("RGBA", img.size, color(ol.get("color", "#141414"), pal)[:3] + (0,))
+        o.putalpha(full)
+        o.alpha_composite(block)
+        block = o
+    block.alpha_composite(img)
+    return block
+
+
 def _effects(img, L):
-    """Glow and drop shadow from the layer's alpha."""
+    """3D extrusion, glow and drop shadow from the layer's alpha."""
     st, pal, scale = L.st, L.palette, L.scale
+    if st.get("extrude"):
+        img = _extrude(img, L)
     sh, gl = st.get("shadow"), st.get("glow")
     if not sh and not gl:
         return img

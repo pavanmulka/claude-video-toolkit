@@ -301,8 +301,9 @@ def vo_words(spec):
         return None
     from .analysis.voiceover import transcribe
     tr = transcribe(vo["file"], language=vo.get("language"), vocabulary=vo.get("_vocab"))
-    _, tm, info = process_voiceover(vo)
+    y, tm, info = process_voiceover(vo)
     starts = info.get("anchor_starts") or {}
+    onset = _onset_snapper(y, info.get("start", 0.0))
     words = []
     for i, w in enumerate(tr["words"]):
         if vo.get("trim") and (w["start"] < vo["trim"][0] or (vo["trim"][1] and w["end"] > vo["trim"][1])):
@@ -311,8 +312,111 @@ def vo_words(spec):
         if any(float(c0) <= mid < float(c1) for c0, c1 in vo.get("cut") or []):
             continue
         st = starts.get(i, tm(w["start"]))         # placed lines: the audio onset, not the transcript's guess
-        words.append({"w": w["w"], "start": st, "end": max(st + 0.05, tm(w["end"]))})
-    return fix_words(words, (spec.get("captions") or {}).get("replace") or spec["brand"].get("caption_replace") or {})
+        en = tm(w["end"])
+        st = onset(st, en)                         # Whisper often starts a word inside the pause before it
+        words.append({"w": w["w"], "start": st, "end": max(st + 0.05, en)})
+    cap = spec.get("captions") or {}
+    if cap.get("script"):
+        words = script_words(words, cap["script"])
+    return fix_words(words, cap.get("replace") or spec["brand"].get("caption_replace") or {})
+
+
+def _onset_snapper(y, start):
+    """f(st, en) -> st moved forward to where the voice is actually audible (if the transcript starts it in silence)."""
+    hop = int(0.01 * SR)
+    mono = np.abs(y).mean(axis=1) if y.ndim == 2 else np.abs(y)
+    n = len(mono) // hop
+    if n < 2:
+        return lambda st, en: st
+    env = 20 * np.log10(np.sqrt((mono[:n * hop].reshape(n, hop) ** 2).mean(axis=1)) + 1e-7)
+    loud = env > env.max() - 32
+
+    def snap(st, en):
+        # the word's window may begin in silence, or in the tail of the previous word followed by a pause:
+        # start the word after the first real pause (>= 80 ms) in its window, if sound follows it
+        i0, i1 = max(0, int((st - start) / 0.01)), min(n, int((en - start) / 0.01) - 4)
+        i, quiet = i0, 0
+        while i < i1:
+            if loud[i]:
+                if quiet >= 8 or (i0 + quiet == i and quiet >= 8):
+                    return start + i * 0.01
+                quiet = 0
+            else:
+                quiet += 1
+            i += 1
+        return st
+    return snap
+
+
+def _best_pairs(heard, script):
+    """Order-preserving assignment of every script word to one heard word, maximising spelling similarity."""
+    import difflib
+    H, S = len(heard), len(script)
+    sim = [[difflib.SequenceMatcher(None, h, w).ratio() for w in script] for h in heard]
+    best = [[-1.0] * (S + 1) for _ in range(H + 1)]          # best[i][j]: first i heard words, first j script words
+    best[0][0] = 0.0
+    for i in range(1, H + 1):
+        best[i][0] = 0.0
+        for j in range(1, min(i, S) + 1):
+            skip = best[i - 1][j]
+            take = best[i - 1][j - 1] + sim[i - 1][j - 1] if best[i - 1][j - 1] >= 0 else -1.0
+            best[i][j] = max(skip, take)
+    pairs, i, j = [], H, S
+    while j > 0:
+        if i > j and best[i - 1][j] >= best[i][j] - 1e-9:
+            i -= 1
+        else:
+            pairs.append((i - 1, j - 1))
+            i, j = i - 1, j - 1
+    return pairs[::-1]
+
+
+def _norm_word(t):
+    return re.sub(r"[^a-z0-9]+", "", t.lower().replace("’", "'").replace("'", ""))
+
+
+def script_words(words, script):
+    """Show the script's own words (spelling, capitals, punctuation) on the transcript's timing.
+
+    `script` is the exact spoken text (string or list of lines). Words are matched in order, ignoring case and
+    punctuation; where the transcript heard something else ("send" for "sent", "Drs." for "Doctor's") the script wins
+    and the timing of the misheard words is shared out; words only in the transcript are dropped, words only in the
+    script get timing from their neighbours. A free-standing dash or ellipsis joins the word before it.
+    """
+    import difflib
+    text = " ".join(script) if isinstance(script, list) else script
+    toks = []
+    for t in text.split():
+        if toks and not _norm_word(t):          # "—", "…", "-": keep it on the previous word
+            toks[-1] += " " + t
+        else:
+            toks.append(t)
+    toks = [t for t in toks if _norm_word(t)]
+    if not toks or not words:
+        return words
+    a = [_norm_word(w["w"]) for w in words]
+    b = [_norm_word(t) for t in toks]
+    out = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
+        if op == "equal":
+            out += [{"w": toks[j1 + k], "start": words[i1 + k]["start"], "end": words[i1 + k]["end"]} for k in range(i2 - i1)]
+        elif op == "replace" and i2 - i1 > j2 - j1:
+            # heard more words than the script has ("share. hair, male, scent" for "Share. Mail. Sent."):
+            # each script word takes the timing of the heard word that sounds most like it, in order
+            m = _best_pairs(a[i1:i2], b[j1:j2])
+            out += [{"w": toks[j1 + jj], "start": words[i1 + ii]["start"], "end": words[i1 + ii]["end"]} for ii, jj in m]
+        elif op in ("replace", "insert"):
+            if i2 > i1:
+                t0, t1 = words[i1]["start"], words[i2 - 1]["end"]
+            else:                                # script words the transcript missed: squeeze them in by the neighbours
+                t0 = words[i1 - 1]["end"] if i1 > 0 else words[0]["start"]
+                t1 = words[i1]["start"] if i1 < len(words) else t0 + 0.3 * (j2 - j1)
+                t1 = max(t1, t0 + 0.05 * (j2 - j1))
+            n = j2 - j1
+            for k in range(n):
+                out.append({"w": toks[j1 + k], "start": t0 + (t1 - t0) * k / n, "end": t0 + (t1 - t0) * (k + 1) / n})
+        # "delete": heard but not in the script (a breath read as a word, an ad-lib) -> no caption
+    return out
 
 
 def fix_words(words, repl):
@@ -335,8 +439,8 @@ def music_track(mu, total, brand_dir=None):
         key = _hash(total, sorted(g.items()))
         f = cache_dir("music") / f"bed_{key}.wav"
         if not f.exists():
-            y = synth.music_bed(total, bpm=g.get("bpm", 120), key=g.get("key", "D"), drop=g.get("drop", 0.0),
-                                resolve=g.get("resolve"), seed=g.get("seed", 7))
+            y = synth.music_bed(total, bpm=g.get("bpm"), key=g.get("key", "D"), drop=g.get("drop", 0.0),
+                                resolve=g.get("resolve"), seed=g.get("seed", 7), mood=g.get("mood", "chill"))
             write_wav(f, y)
         x = decode_audio(f)
     else:
@@ -420,34 +524,9 @@ def mix(spec, plan, out_wav, stems_dir=None):
         rep.setdefault("warnings", []).extend(info.get("warnings", []))
         if info["start"] + info["out_dur"] > total + 0.05:
             rep.setdefault("warnings", []).append(f"voice-over ends at {info['start'] + info['out_dur']:.2f}s, after the video ({total:.2f}s)")
-    if au.get("music"):
-        mu = au["music"]
-        x, start = music_track(mu, total)
-        m = np.zeros((n, 2))
-        _place(m, x, start)
-        if vo_y is not None and mu.get("duck", -12) is not None:
-            m *= duck_envelope(vo_y, au["voiceover"].get("start", 0.0), n, mu.get("duck", -12))[:, None]
-        bus += m
-        stems["music"] = m
-        rep["tracks"].append("music")
-    for s in plan["sfx"]:
-        x = decode_audio(s["sound"])
-        t = s["at"]
-        meta = Path(s["sound"]).with_name("sfx.json")
-        if s.get("align") in ("end", "peak"):
-            peak = None
-            if s["align"] == "peak" and meta.exists():
-                peak = json.loads(meta.read_text()).get(Path(s["sound"]).stem, {}).get("peak")
-            t -= peak if peak is not None else len(x) / SR
-        if s.get("pan"):
-            p = float(s["pan"])
-            x = x * np.array([np.cos((p + 1) * np.pi / 4), np.sin((p + 1) * np.pi / 4)]) * 1.4142
-        _place(bus, x, t, db(s.get("volume", 0.0)))
-    if plan["sfx"]:
-        rep["tracks"].append(f"{len(plan['sfx'])} sfx")
-    for x, t in clip_audio(spec, plan):
-        _place(bus, x, t)
-        rep["tracks"].append("clip audio")
+    # extra tracks first: a track with `voice: true` (a second character, a phone call) counts as speech, so music and
+    # `duck:` tracks dip under it exactly as they do under the voice-over
+    tracks = []
     for tr in au.get("tracks") or []:
         x = decode_audio(tr["file"])
         if tr.get("trim"):
@@ -462,15 +541,60 @@ def mix(spec, plan, out_wav, stems_dir=None):
             x = apply_fx(x, tr["fx"])
         x = _fade(x.copy(), tr.get("fade_in", 0.02), tr.get("fade_out", 0.05)) * db(tr.get("volume", 0.0))
         if tr.get("pan"):
-            p = float(tr["pan"])
-            x = x * np.array([np.cos((p + 1) * np.pi / 4), np.sin((p + 1) * np.pi / 4)]) * 1.4142
-        if tr.get("duck") and vo_y is not None:
+            pn = float(tr["pan"])
+            x = x * np.array([np.cos((pn + 1) * np.pi / 4), np.sin((pn + 1) * np.pi / 4)]) * 1.4142
+        tracks.append((tr, x))
+    key = None                                   # everything that counts as speech, on the output timeline
+    if vo_y is not None or any(tr.get("voice") for tr, _ in tracks):
+        key = np.zeros((n, 2))
+        if vo_y is not None:
+            _place(key, vo_y, info["start"])
+        for tr, x in tracks:
+            if tr.get("voice"):
+                _place(key, x, float(tr["at"]))
+        if not np.any(key):
+            key = None
+    if au.get("music"):
+        mu = au["music"]
+        x, start = music_track(mu, total)
+        m = np.zeros((n, 2))
+        _place(m, x, start)
+        if key is not None and mu.get("duck", -12) is not None:
+            m *= duck_envelope(key, 0.0, n, mu.get("duck", -12))[:, None]
+        bus += m
+        stems["music"] = m
+        rep["tracks"].append("music")
+    for sfx in plan["sfx"]:
+        x = decode_audio(sfx["sound"])
+        t = sfx["at"]
+        meta = Path(sfx["sound"]).with_name("sfx.json")
+        if sfx.get("align") in ("end", "peak"):
+            peak = None
+            if sfx["align"] == "peak" and meta.exists():
+                peak = json.loads(meta.read_text()).get(Path(sfx["sound"]).stem, {}).get("peak")
+            t -= peak if peak is not None else len(x) / SR
+        if sfx.get("pan"):
+            pn = float(sfx["pan"])
+            x = x * np.array([np.cos((pn + 1) * np.pi / 4), np.sin((pn + 1) * np.pi / 4)]) * 1.4142
+        _place(bus, x, t, db(sfx.get("volume", 0.0)))
+    if plan["sfx"]:
+        rep["tracks"].append(f"{len(plan['sfx'])} sfx")
+    for x, t in clip_audio(spec, plan):
+        _place(bus, x, t)
+        rep["tracks"].append("clip audio")
+    voices = np.zeros((n, 2)) if any(tr.get("voice") for tr, _ in tracks) else None
+    for tr, x in tracks:
+        if tr.get("duck") and not tr.get("voice") and key is not None:
             m = np.zeros((n, 2))
             _place(m, x, float(tr["at"]))
-            bus += m * duck_envelope(vo_y, au["voiceover"].get("start", 0.0), n, float(tr["duck"]) if not isinstance(tr["duck"], bool) else -10)[:, None]
+            bus += m * duck_envelope(key, 0.0, n, float(tr["duck"]) if not isinstance(tr["duck"], bool) else -10)[:, None]
         else:
             _place(bus, x, float(tr["at"]))
+            if voices is not None and tr.get("voice"):
+                _place(voices, x, float(tr["at"]))
         rep["tracks"].append(Path(str(tr["file"])).stem[:24])
+    if voices is not None:
+        stems["voices"] = voices
     if not np.any(bus):
         write_wav(out_wav, bus)
         rep["loudness"] = None

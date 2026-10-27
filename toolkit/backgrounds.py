@@ -10,7 +10,7 @@ from PIL import Image, ImageFilter
 
 from .text import color
 
-TYPES = {"mesh", "glow", "paper", "grid", "dots", "rays", "aurora", "noise", "spotlight"}
+TYPES = {"mesh", "glow", "paper", "grid", "dots", "rays", "aurora", "noise", "spotlight", "polar"}
 
 _static = {}
 
@@ -236,6 +236,56 @@ def spotlight(bg, W, H, t, pal):
                             "radius": bg.get("radius", 0.42), "strength": bg.get("strength", 0.16)}]}, W, H, t, pal)
 
 
+def polar(bg, W, H, t, pal):
+    """Polar grid (radial spokes + rings, slowly turning) on a light base, with grainy gradient blobs in the corners:
+    the 2026 motion-graphics stage. Keys: color, line, line_opacity, count (spokes), spacing (rings), center, speed
+    (deg/s), blobs (colours; [] = none), grain (blob speckle 0..1)."""
+    import cv2
+    base = _rgb(bg.get("color", "#E9E8EF"), pal)
+    line = _rgb(bg.get("line", "#9C99AE"), pal)
+    alpha = float(bg.get("line_opacity", 0.32))
+    u = min(W, H) / 1080
+    c = bg.get("center", ["50%", "46%"])
+    cx, cy = _pct(c[0], W), _pct(c[1], H)
+    n = int(bg.get("count", 24))
+    step = float(bg.get("spacing", 170)) * u
+    lw = max(1.0, 1.5 * u)
+    key = ("polar", W, H, round(cx), round(cy), n, round(step, 2), round(alpha, 3))
+    if key not in _static:
+        xx, yy = _coords(W, H)
+        dx, dy = xx - cx, yy - cy
+        r = np.sqrt(dx * dx + dy * dy)
+        th = np.arctan2(dy, dx)
+        ring = np.clip(1.2 - np.abs(((r + step / 2) % step) - step / 2) / lw, 0, 1)
+        fade = np.clip(1.1 - r / (1.25 * max(W, H)), 0.25, 1) * alpha
+        _static[key] = (r, th, ring, fade, (r > 40 * u).astype(np.float32))
+    r, th, ring, fade, hub = _static[key]
+    rot = math.radians(float(bg.get("speed", 2.0)) * t)
+    frac = ((th + rot) * (n / (2 * math.pi))) % 1.0
+    spoke = np.clip(1.2 - np.minimum(frac, 1 - frac) * (2 * math.pi / n) * r / lw, 0, 1) * hub
+    m = np.maximum(spoke, ring) * fade
+    arr = base[None, None, :] + (line - base)[None, None, :] * m[..., None]
+    blobs = bg.get("blobs", ["#FF7A3D", "#F6C445", "#5FD9C8"])
+    if blobs:
+        grain = float(bg.get("grain", 0.55))
+        sw, sh = max(8, W // 4), max(8, H // 4)
+        gx, gy = np.meshgrid(np.arange(sw, dtype=np.float32) * W / sw, np.arange(sh, dtype=np.float32) * H / sh)
+        gkey = ("polar_grain", W, H, int(t * 12) % 6)
+        if gkey not in _static:
+            _static[gkey] = np.random.default_rng(gkey[3]).random((H, W)).astype(np.float32)
+        g = _static[gkey]
+        spots = [(1.02, -0.02, 0.62), (-0.04, 1.02, 0.58), (1.04, 1.0, 0.5), (-0.05, 0.0, 0.45)]
+        for i, col in enumerate(blobs[:4]):
+            sx, sy, rad = spots[i]
+            ox, oy = 0.02 * math.sin(t * 0.4 + i) * W, 0.02 * math.cos(t * 0.33 + i) * H
+            small = np.exp(-(((gx - (sx * W + ox)) ** 2 + (gy - (sy * H + oy)) ** 2) / (rad * W) ** 2) * 2.2)
+            a = cv2.resize(small, (W, H), interpolation=cv2.INTER_LINEAR)
+            if grain:
+                a = np.clip(a * (1 + grain) - grain * g, 0, 1)
+            arr += (_rgb(col, pal)[None, None, :] - arr) * a[..., None]
+    return Image.fromarray(_dither(arr, 1.0, int(t * 30)))
+
+
 def _pct(v, total):
     if isinstance(v, str) and v.strip().endswith("%"):
         return float(v.strip()[:-1]) / 100 * total
@@ -243,7 +293,7 @@ def _pct(v, total):
 
 
 FUNCS = {"mesh": mesh, "glow": glow, "paper": paper, "grid": grid, "dots": dots, "rays": rays, "aurora": aurora,
-         "noise": noise, "spotlight": spotlight}
+         "noise": noise, "spotlight": spotlight, "polar": polar}
 
 
 def render(bg, W, H, t, pal):

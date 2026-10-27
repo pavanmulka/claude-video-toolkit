@@ -3,6 +3,7 @@ rendered with the real engine (and an iPhone recording from inbox/ when there is
 import yaml
 from PIL import Image, ImageDraw
 
+from . import anim
 from .media import kind_of, probe
 from .paths import INBOX, work_dir
 from .text import label_font
@@ -80,21 +81,23 @@ def render_gallery(kind, brand=None):
         return [_sheet(items, d / "themes.png")]
     if kind == "text":
         effects = [("block", "pop"), ("word", "pop"), ("word", "stamp"), ("word", "rise"), ("word", "blur"), ("line", "mask"),
-                   ("word", "slide_left"), ("word", "zoom"), ("word", "spin"), ("word", "bounce"), ("letter", "type"), ("word", "flip")]
+                   ("word", "slide_left"), ("word", "zoom"), ("word", "spin"), ("word", "bounce"), ("letter", "type"), ("word", "flip"),
+                   ("block", "mega"), ("block", "grow"), ("word", "whip_left"), ("word", "whip_up")]
         s = _base(brand, "midnight_plum", "text_effects")
         s["timeline"] = []
         times = []
         for i, (by, eff) in enumerate(effects):
             s["timeline"].append({"section": f"{by}-{eff}", "text": {"content": "Your notes app\nisn't a **plan.**", "style": "title", "pos": "center"},
-                                  "text_anim": ({"effect": eff, "in": 0.35} if by == "block" else
-                                                {"by": by, "effect": eff, "stagger": 0.07 if by != "letter" else 0.03,
-                                                 **({"caret": True} if eff == "type" else {})}),
+                                  "text_anim": dict({"effect": eff, "in": 0.35} if by == "block" else
+                                                    {"by": by, "effect": eff, "stagger": 0.07 if by != "letter" else 0.03,
+                                                     **({"caret": True} if eff == "type" else {})},
+                                                    **({"motion_blur": 1} if eff in anim.PASS_THROUGH or eff in ("mega", "grow") else {})),
                                   "clips": [{"color": "transparent", "dur": 1.6}]})
             times.append(i * 1.6 + 0.24)
         ps = _render_stills("text_effects", s, times)
         items = [(f"{by} · {eff}", p) for (by, eff), p in zip(effects, ps)]
         extra = _base(brand, "midnight_plum", "text_styles")
-        styles = ["kinetic", "editorial", "neon", "gradient_title", "highlight", "strike", "word_pills", "glass_card", "handwritten",
+        styles = ["kinetic", "editorial", "neon", "gradient_title", "highlight", "strike", "word_pills", "glass_card", "liquid_glass", "handwritten",
                   "outline", "sticker", "typewriter"]
         extra["timeline"] = [{"section": st, "text": {"content": "Plan with ~~spreadsheets~~ **one app.**" if st == "strike" else
                                                        "Your notes app isn't a **plan.**", "style": st, "pos": "center"},
@@ -117,7 +120,7 @@ def render_gallery(kind, brand=None):
         ps = _render_stills("marks", s, [i * 1.0 + 0.8 for i in range(len(types))])
         return [_sheet(list(zip(types, ps)), d / "marks.png")]
     if kind == "transitions":
-        types = ["crossfade", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash", "dip"]
+        types = ["crossfade", "slide", "push", "whip", "zoom", "blur", "wipe", "circle", "glitch", "flash", "dip", "shrink", "grow", "flood"]
         s = _base(brand, None, "transitions")
         cols = ["#2D1533", "#0E3B45"]
         secs = [{"section": "start", "text": {"content": "A", "style": "title", "pos": "center"}, "clips": [{"color": cols[0], "dur": 1.0}]}]

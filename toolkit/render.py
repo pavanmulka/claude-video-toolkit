@@ -4,6 +4,7 @@ import json
 import multiprocessing as mp
 import os
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -90,6 +91,32 @@ def encode_parallel(spec, plan, r, out, preview, safezones, words, jobs, work):
     r.warnings += warnings
 
 
+def find_pops(video, plan, fps):
+    """One-frame pops: a frame that differs from BOTH neighbours while the neighbours match each other (a flash of a
+    wrong layer, a text frame out of order, a transition that skips). Cuts don't count: after a cut the next frames
+    match the new shot. Returns warning strings."""
+    import numpy as np
+    w, h = 96, max(2, int(round(96 * plan["H"] / plan["W"] / 2)) * 2)
+    raw = subprocess.run([FFMPEG, "-v", "error", "-i", str(video), "-vf", f"scale={w}:{h},format=gray", "-f", "rawvideo", "-"],
+                         capture_output=True).stdout
+    n = len(raw) // (w * h)
+    if n < 3:
+        return []
+    f = np.frombuffer(raw[:n * w * h], np.uint8).reshape(n, h, w).astype(np.float32)
+    d1 = np.abs(f[1:] - f[:-1]).mean(axis=(1, 2))            # i-1 -> i
+    d2 = np.abs(f[2:] - f[:-2]).mean(axis=(1, 2))            # i-1 -> i+1
+    out = []
+    for i in range(1, n - 1):
+        a, b, c = d1[i - 1], d1[i], d2[i - 1]
+        if min(a, b) > 2.5 and min(a, b) > 3 * max(c, 0.8):
+            t = i / fps
+            sec = next((s["name"] for s in plan["sections"] if s["start"] / plan["fps"] <= t < s["end"] / plan["fps"]), "?")
+            out.append(f"one-frame pop at {t:.2f}s (section {sec}): that frame differs from both neighbours; check it with --frames {t:.2f}")
+    if len(out) > 6:
+        out = out[:6] + [f"... and {len(out) - 6} more one-frame pops"]
+    return out
+
+
 def write_srt(words, path, max_words=6):
     from . import captions as capmod
     chunks = capmod.chunk(words, max_words=max_words, max_chars=42)
@@ -123,6 +150,9 @@ def render(spec_path, preview=False, show_safezones=False, frames=None, no_audio
         print("captions: transcribing voice-over (cached after the first run)...")
         words = audiomod.vo_words(spec)
     r = Renderer(spec, plan, preview=preview, show_safezones=show_safezones, caption_words=words)
+
+    if spec["output"].get("carousel") and not frames:
+        return render_carousel(spec, plan, r, work, out)
 
     if frames:  # quick stills
         fdir = work / "frames"
@@ -169,6 +199,7 @@ def render(spec_path, preview=False, show_safezones=False, frames=None, no_audio
     srt = None
     if words and not preview and spec["output"].get("srt", True):
         srt = write_srt(words, final.with_suffix(".srt"))
+    r.warnings += find_pops(vtmp, plan, plan["fps"] / (2 if preview else 1))
     sheets = video_sheet(final, work / f"contact_{stem}{'_preview' if preview else ''}.jpg", every=0.5 if plan["total"] / plan["fps"] <= 60 else 1.0)
     report = {"output": str(final), "duration": round(plan["total"] / plan["fps"], 3), "size": f"{plan['W']}x{plan['H']}",
               "fps": plan["fps"] / (2 if preview else 1), "audio": rep, "contact_sheets": sheets, "seconds": round(time.time() - t0, 1),
@@ -191,6 +222,63 @@ def render(spec_path, preview=False, show_safezones=False, frames=None, no_audio
         print(f"contact sheet: {s}")
     _print_warnings(spec, plan, r, rep)
     return report
+
+
+def render_carousel(spec, plan, r, work, out=None):
+    """output.carousel: one still slide per section (the settled moment near its end), numbered, in a folder next to
+    where the video would go. Section `slide_at` (seconds) picks the moment; `carousel.at` (fraction, default 0.95).
+    Exit fades and exit animations are switched off, so every slide shows its finished state."""
+    from PIL import Image
+    car = spec["output"]["carousel"] if isinstance(spec["output"]["carousel"], dict) else {}
+    fmt, at, q = car.get("format", "jpg"), float(car.get("at", 0.95)), int(car.get("quality", 93))
+    F, secs = plan["fps"], plan["sections"]
+    for s in secs:                                            # a slide is the settled state: no exit fades or exits
+        s["anim"] = dict(s["anim"], out=0, out_effect=None)
+    for ov in plan["overlays"]:
+        ov["fade_out"] = 0.0
+        if ov.get("anim"):
+            ov["anim"] = dict(ov["anim"], out=None)
+    want = {}
+    for i, s in enumerate(secs):
+        sec_spec = spec["timeline"][i] if i < len(spec["timeline"]) else {}
+        nxt = secs[i + 1]["start"] if i + 1 < len(secs) else plan["total"]
+        last = min(s["end"], nxt) - 1                         # never inside the next slide's transition
+        g = s["start"] + int(round(float(sec_spec["slide_at"]) * F)) if sec_spec.get("slide_at") is not None \
+            else s["start"] + int((s["end"] - s["start"]) * at)
+        want[max(s["start"], min(g, last))] = i
+    stem = Path(out or spec["output"]["file"]).stem
+    odir = (Path(out).parent if out else spec["output"]["file"].parent) / f"{stem}_carousel"
+    shutil.rmtree(odir, ignore_errors=True)
+    odir.mkdir(parents=True)
+    _, post = r.look_filters()
+    paths = {}
+    print(f"rendering {len(want)} carousel slides ({plan['W']}x{plan['H']})...")
+    for g, fr in r.frames(only=set(want)):
+        i = want[g]
+        p = odir / f"{stem}_{i + 1:02d}.{fmt}"
+        tmp = odir / f"_t{i:02d}.png"
+        fr.convert("RGB").save(tmp)
+        if post:
+            run([FFMPEG, "-v", "error", "-y", "-i", str(tmp), "-vf", f"format=yuv444p,{post},format=rgb24", str(tmp.with_suffix(".g.png"))])
+            tmp.with_suffix(".g.png").replace(tmp)
+        im = Image.open(tmp).convert("RGB")
+        im.save(p, "JPEG", quality=q, optimize=True) if fmt == "jpg" else im.save(p)
+        tmp.unlink()
+        paths[i] = p
+    files = [paths[i] for i in sorted(paths)]
+    tw = 270
+    th = int(tw * plan["H"] / plan["W"])
+    sheet = Image.new("RGB", (min(len(files), 5) * (tw + 8) + 8, ((len(files) + 4) // 5) * (th + 8) + 8), (40, 40, 44))
+    for k, f in enumerate(files):
+        sheet.paste(Image.open(f).resize((tw, th)), (8 + (k % 5) * (tw + 8), 8 + (k // 5) * (th + 8)))
+    sp = work / f"carousel_{stem}.jpg"
+    sheet.save(sp, quality=90)
+    print(f"\ncarousel: {odir}  ({len(files)} slides, {plan['W']}x{plan['H']})")
+    for f in files:
+        print(f"  {f.name}")
+    print(f"contact sheet: {sp}")
+    _print_warnings(spec, plan, r, None)
+    return {"output": str(odir), "slides": [str(f) for f in files], "contact_sheets": [str(sp)]}
 
 
 def _print_warnings(spec, plan, r, rep):

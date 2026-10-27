@@ -36,13 +36,43 @@ def model_for(w, h):
         if abs(pw - mw) <= 4 and abs(ph - mh) <= 4:
             return dict(m, exact=True)
     aspect = ph / pw
-    if 2.1 < aspect < 2.25:  # modern full-screen iPhone proportions
+    if 2.1 < aspect < 2.2:  # modern full-screen iPhone proportions (20:9 and taller are Android phones)
         return dict(name="iPhone (unknown model)", pt_w=pw / 3, radius=0.141 * pw / 3, island=(126, 37.33, 11.5), exact=False)
     return dict(name="generic device", pt_w=pw / 3, radius=0.06 * pw / 3, island=None, exact=False)
 
 
 def is_iphone_recording(w, h):
     return model_for(w, h)["name"] != "generic device"
+
+
+def is_android_recording(w, h):
+    """Full-screen Android phone proportions (20:9 to 21:9, e.g. 1080x2400, 1344x2992) that no iPhone uses."""
+    pw, ph = (w, h) if h >= w else (h, w)
+    return not is_iphone_recording(w, h) and 2.2 <= ph / pw <= 2.35
+
+
+# Android (Pixel-style) proportions, as fractions of the screen width: screen corner radius, glass bezel, frame band,
+# punch-hole camera (diameter, centre below the screen top) when the recording has none of its own
+ANDROID = dict(radius=0.093, bezel=0.021, band=0.009, cam_d=0.036, cam_y=0.05)
+
+
+def detect_recorded_hole(img):
+    """Bounding box (source px) of a black punch-hole camera drawn into the recording (Android emulators render the
+    display cutout into the frame; phone screen recordings don't). None when there is none."""
+    a = np.asarray(img.convert("RGB")).astype(np.int16)
+    h, w, _ = a.shape
+    x0 = int(w * 0.3)
+    reg = a[: int(h * 0.07), x0: int(w * 0.7)]
+    dark = reg.max(axis=2) < 35
+    rows = np.where(dark.mean(axis=1) > 0.01)[0]
+    cols = np.where(dark.mean(axis=0) > 0.05)[0]
+    if len(rows) < 6 or len(cols) < 6:
+        return None
+    y0, y1, c0, c1 = rows.min(), rows.max(), cols.min(), cols.max()
+    bw, bh = c1 - c0 + 1, y1 - y0 + 1
+    if not (0.015 * w < bw < 0.12 * w) or abs(bw - bh) > 0.25 * bw or y0 == 0:
+        return None  # not a round hole (a dark status bar, a notch reaching the edge)
+    return (int(c0 + x0), int(y0), int(c1 + x0), int(y1))
 
 
 def detect_recorded_island(img):
@@ -82,17 +112,22 @@ def _aa(d):
 
 
 class IPhone:
-    """Draws the device around a screen rectangle given in output pixels."""
+    """Draws the device around a screen rectangle given in output pixels. `device="android"` draws a Pixel-style
+    phone instead: rounder-cornered slab, even black bezel, buttons on the right only, a punch-hole camera."""
 
     def __init__(self, src_w, src_h, finish="black", bezel=True, buttons=True, island="auto",
-                 island_bbox=None, shadow=0.5):
+                 island_bbox=None, shadow=0.5, device="iphone", camera="auto", hole_bbox=None):
         self.src_w, self.src_h = src_w, src_h
-        self.m = model_for(src_w, src_h)
+        self.android = device == "android"
+        self.m = dict(name="Android phone", pt_w=src_w, radius=ANDROID["radius"] * src_w, island=None) if self.android \
+            else model_for(src_w, src_h)
         self.finish = FINISHES.get(finish, FINISHES["black"]) if isinstance(finish, str) else tuple(finish)
         self.bezel = bezel
         self.buttons = buttons and bezel
         self.island = island
         self.island_bbox = island_bbox
+        self.camera = camera if self.android else "off"
+        self.hole_bbox = hole_bbox
         self.shadow = shadow
         self._cache_key = None
         self._cache = None
@@ -101,6 +136,8 @@ class IPhone:
     def metrics(self, sw):
         k = sw / self.m["pt_w"]            # px per point
         R = self.m["radius"] * k
+        if self.android:
+            return k, R, (ANDROID["bezel"] * sw) if self.bezel else 0.0, (ANDROID["band"] * sw) if self.bezel else 0.0
         bz = (0.018 * sw) if self.bezel else 0.0
         band = (0.012 * sw) if self.bezel else 0.0
         return k, R, bz, band
@@ -169,8 +206,9 @@ class IPhone:
                     return _aa(d) * (1 - a_f)
 
                 ab = np.zeros_like(alpha)
-                for side, f0, f1 in (("L", 0.195, 0.235), ("L", 0.285, 0.345), ("L", 0.37, 0.43),
-                                     ("R", 0.30, 0.40), ("R", 0.60, 0.665)):
+                keys = (("R", 0.205, 0.265), ("R", 0.30, 0.415)) if self.android else \
+                    (("L", 0.195, 0.235), ("L", 0.285, 0.345), ("L", 0.37, 0.43), ("R", 0.30, 0.40), ("R", 0.60, 0.665))
+                for side, f0, f1 in keys:
                     ab = np.maximum(ab, button(side, f0, f1))
                 for c in range(3):
                     rgb[..., c] = rgb[..., c] * (1 - ab) + self.finish[c] * 0.8 * ab
@@ -200,6 +238,22 @@ class IPhone:
             for c in range(3):
                 rgb[..., c] = rgb[..., c] * (1 - a_i)
             alpha = np.maximum(alpha, a_i)
+
+        # Android punch-hole camera: over the hole the recording already has, else a default one
+        if self.camera != "off":
+            s = sw / self.src_w
+            if self.hole_bbox is not None:
+                bx0, by0, bx1, by1 = self.hole_bbox
+                hx_, hy_ = sx + (bx0 + bx1 + 1) / 2 * s, sy + (by0 + by1 + 1) / 2 * s
+                r_ = max(bx1 - bx0 + 1, by1 - by0 + 1) / 2 * s + max(1.0, 0.002 * sw)
+            else:
+                hx_, hy_, r_ = cx, sy + ANDROID["cam_y"] * sw, ANDROID["cam_d"] * sw / 2
+            d_c = np.hypot(X - hx_, Y - hy_) - r_
+            a_c = _aa(d_c) * a_s
+            lens = np.exp(-((X - hx_ + 0.25 * r_) ** 2 + (Y - hy_ + 0.25 * r_) ** 2) / max(1.0, (0.22 * r_) ** 2))
+            for c in range(3):
+                rgb[..., c] = rgb[..., c] * (1 - a_c) + (8 + 36 * lens) * a_c
+            alpha = np.maximum(alpha, a_c)
 
         over.paste(Image.fromarray(np.dstack([np.clip(rgb, 0, 255), alpha * 255]).astype(np.uint8), "RGBA"), (X0, Y0))
         self._cache_key, self._cache = key, (mask, over, shadow)

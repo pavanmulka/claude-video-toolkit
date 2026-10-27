@@ -17,7 +17,7 @@ from . import captions as capmod
 from . import safezones
 from . import screenplate
 from . import shapes
-from .device import IPhone, detect_recorded_island
+from .device import IPhone, detect_recorded_hole, detect_recorded_island
 from .media import FFMPEG, probe, proxy, read_frames, read_rgba, still
 from .text import color, parse_markup, render_parts, render_rich
 
@@ -26,7 +26,8 @@ ease_out = anim.out_cubic
 
 DIRS = {"left": (-1, 0), "right": (1, 0), "up": (0, -1), "down": (0, 1)}
 TRANS_EASE = {"slide": "in_out_expo", "push": "in_out_expo", "whip": "in_out_expo", "zoom": "in_out", "blur": "in_out",
-              "wipe": "in_out", "circle": "in_out", "glitch": "linear", "flash": "linear", "crossfade": "linear"}
+              "wipe": "in_out", "circle": "in_out", "glitch": "linear", "flash": "linear", "crossfade": "linear",
+              "shrink": "linear", "grow": "linear", "flood": "linear"}
 
 
 def rounded_mask(w, h, r, ss=4):
@@ -78,6 +79,7 @@ class Renderer:
         self.pscale = 0.5 if preview else 1.0
         self.show_safezones = show_safezones
         self._text_cache, self._img_cache, self._dev_cache, self._mask_cache = {}, {}, {}, {}
+        self._reveals = {}
         self._chrome_cache, self._vig_cache, self._parts_cache = {}, {}, {}
         self._xf = {}          # segment label -> (ax, bx, ay, by, clip rect): source px -> output px
         self._H = {}           # segment label -> 3x3 homography applied after _xf (3D tilt), if any
@@ -88,9 +90,11 @@ class Renderer:
         lp = spec["output"].get("loop")
         self.loop_n = int(round((lp.get("dur", 0.4) if isinstance(lp, dict) else 0.4) * self.F)) if lp else 0
         self._first = None
+        self._masker = None          # Vision subject masks (behind: subject|person), started on first use
         self.grade_on = any(self.look.get(k) for k in ("contrast", "saturation", "brightness", "gamma", "warmth", "lift"))
         self.chunks = None
         self.cap_style = None
+        self.vo_words = caption_words or []      # voice-over words at output time (for text with anim.sync: voice)
         cap = spec.get("captions")
         if cap and cap.get("enabled", True) and caption_words:
             cs = brandmod.caption_style(self.brand, cap.get("style", "standard"))
@@ -105,6 +109,10 @@ class Renderer:
                 spans = [(s["start"] / F, s["end"] / F) for s in plan["sections"] if s["name"] in cap["skip"]]
                 self.chunks = [c for c in self.chunks
                                if not any(a <= (c["start"] + c["end"]) / 2 + self.cap_offset < b for a, b in spans)]
+                for c in self.chunks:   # a kept chunk was stretched to meet the next one: stop it where a skipped section starts
+                    for a, b in spans:
+                        if c["start"] + self.cap_offset < a < c["end"] + self.cap_offset:
+                            c["end"] = a - self.cap_offset
             if cap.get("skip_text"):  # drop caption chunks that duplicate on-screen text (headers, hooks)
                 def _norm(t):
                     return re.sub(r"[^a-z0-9']+", "", t.lower())
@@ -377,7 +385,7 @@ class Renderer:
         if seg["kind"] == "motion":
             fr = self.l_motion(seg, img, k)
         elif seg["kind"] == "color" and seg.get("color") in ("transparent", "background", "none"):
-            self._xf[seg["label"]] = (1.0, 0.0, 1.0, 0.0, (0, 0, self.W, self.H))
+            self._xf[seg["label"]] = (self.pscale, 0.0, self.pscale, 0.0, (0, 0, self.W, self.H))
             fr = self.behind_text(self.background(seg["background"], img, (seg["start"] + k) / self.F), seg, k)
         elif t == "fullbleed":
             fr = self.l_fullbleed(seg, img, k)
@@ -546,7 +554,7 @@ class Renderer:
     def l_motion(self, seg, img, k):
         t = (seg["start"] + k) / self.F
         fr = self.background(seg["background"], img, t) if seg.get("motion_transparent", True) else Image.new("RGBA", (self.W, self.H), (0, 0, 0, 255))
-        self._xf[seg["label"]] = (1.0, 0.0, 1.0, 0.0, (0, 0, self.W, self.H))
+        self._xf[seg["label"]] = (self.pscale, 0.0, self.pscale, 0.0, (0, 0, self.W, self.H))   # source px = full-size frame px
         if img.size != fr.size:
             img = img.resize(fr.size, Image.LANCZOS)
         fr.alpha_composite(img if img.mode == "RGBA" else img.convert("RGBA"))
@@ -576,9 +584,35 @@ class Renderer:
         """Section text marked `behind: true` is drawn between the background and the phone/card (depth)."""
         s = self.plan["sections"][seg["section"]] if seg.get("section") is not None and seg["section"] < len(self.plan["sections"]) else None
         g = seg["start"] + k
-        if s and s.get("behind") and s["text"] and s["start"] <= g < s["end"]:
+        if s and s.get("behind") is True and s["text"] and s["start"] <= g < s["end"]:
             self.draw_section_text(fr, s, g)
         return fr
+
+    def behind_subject(self, fr, g):
+        """Text / overlays marked `behind: subject|person` go between the scene and its subject: Vision cuts the
+        subject out of the composed frame, the layer is drawn, then the subject is laid back on top."""
+        items = [("s", s) for s in self.plan["sections"]
+                 if s.get("behind") in ("subject", "person") and s["text"] and s["start"] <= g < s["end"]]
+        items += [("o", ov) for ov in self.plan["overlays"] if ov.get("behind") and ov["start"] <= g < ov["end"]]
+        if not items:
+            return fr
+        if self._masker is None:
+            from .subject import Masker
+            self._masker = Masker()
+        base = fr.copy()
+        masks = {}
+        for kind, it in items:
+            mode = it["behind"]
+            if mode not in masks:
+                masks[mode] = self._masker.mask(base, mode, key=id(self))
+            if kind == "s":
+                self.draw_section_text(fr, it, g)
+            else:
+                self.draw_overlay(fr, it, g)
+        m = np.maximum.reduce(list(masks.values()))[..., None]
+        a = np.asarray(fr, np.float32)
+        b = np.asarray(base.convert(fr.mode), np.float32)
+        return Image.fromarray((a * (1 - m) + b * m).astype(np.uint8), fr.mode)
 
     def l_fit(self, seg, img, k):
         W, H = self.W, self.H
@@ -621,9 +655,9 @@ class Renderer:
 
     def _src_scale(self, seg, img):
         """source-px (original resolution) -> current frame px (proxy/preview may be smaller)."""
-        if seg["kind"] == "image":
+        if seg.get("kind") == "image":
             return self.pscale                 # image clips are loaded at pscale (preview/proxy)
-        if seg["kind"] in ("color", "motion") or not seg.get("src"):
+        if seg.get("kind") in ("color", "motion") or not seg.get("src"):
             return 1.0
         info = self.spec["sources"][seg["src"]]["info"]
         return img.size[0] / info["width"] if info.get("width") else 1.0
@@ -691,19 +725,26 @@ class Renderer:
         return fr
 
     def device_for(self, seg, img):
-        key = (seg["src"], self.pscale, json.dumps(seg["layout"], sort_keys=True))
+        key = (seg["src"] or seg.get("image"), self.pscale, json.dumps(seg["layout"], sort_keys=True))
         if key not in self._dev_cache:
             lay = seg["layout"]
-            info = self.spec["sources"][seg["src"]]["info"] if seg.get("src") else {"width": img.size[0], "height": img.size[1]}
-            bbox = None
-            island = lay.get("island", "auto")
-            if island == "auto" and seg.get("src"):
+            k = self._src_scale(seg, img)      # source px stay original px in preview too (taps, marks, focus)
+            info = self.spec["sources"][seg["src"]]["info"] if seg.get("src") else {"width": round(img.size[0] / k), "height": round(img.size[1] / k)}
+            bbox = hole = None
+            android = lay.get("device") == "android"
+            island = "off" if android else lay.get("island", "auto")
+            camera = lay.get("camera", "auto") if android else "off"
+            if (island == "auto" or camera == "auto") and seg.get("src"):
                 first = still(self.spec["sources"][seg["src"]]["path"], 0.0, 1.0)
-                bbox = detect_recorded_island(first)
+                if island == "auto":
+                    bbox = detect_recorded_island(first)
+                else:
+                    hole = detect_recorded_hole(first)
             style = lay.get("style", "rise")
             self._dev_cache[key] = IPhone(info["width"], info["height"], finish=lay.get("finish", "black"),
                                           bezel=lay.get("bezel", style != "screen"), buttons=lay.get("buttons", True),
-                                          island=island, island_bbox=bbox, shadow=lay.get("shadow", 0.5))
+                                          island=island, island_bbox=bbox, shadow=lay.get("shadow", 0.5),
+                                          device="android" if android else "iphone", camera=camera, hole_bbox=hole)
         return self._dev_cache[key]
 
     def iphone_rect(self, seg, dev, sw0, sh0):
@@ -877,12 +918,104 @@ class Renderer:
                 kz = int(r * 3) | 1
                 out = Image.fromarray(cv2.GaussianBlur(np.asarray(out), (kz, kz), r), "RGBA")
             return out
+        if t in ("shrink", "grow"):
+            return self._shrink_grow(f0, f1, a, tr)
+        if t == "flood":
+            return self._flood(f0, f1, a, tr)
         if t in ("wipe", "circle"):
             m = self._trans_mask(t, e, tr)
             return Image.composite(f1, f0, m)
         if t == "glitch":
             return self._glitch(f0, f1, a, g)
         return Image.blend(f0, f1, a)
+
+    def _shrink_grow(self, f0, f1, a, tr):
+        """shrink: the outgoing picture collapses into a point (pos) with zoom-blur streaks, the next one settles in
+        behind it. grow: the incoming picture grows out of a point over the outgoing one."""
+        W, H = self.W, self.H
+        cx, cy = self.pos(tr.get("pos", ["50%", "50%"]))
+        n = max(1, tr.get("n", 10))
+
+        def sc(x):     # picture scale at progress x
+            x = anim.clamp01(x)
+            return max(0.002, 1 - anim.out_expo(x / 0.7) * 0.985) if tr["type"] == "shrink" else max(0.002, anim.out_expo(x))
+        if tr["type"] == "shrink":
+            base, top, alpha = self._zoomed(f1, 1.06 - 0.06 * anim.out_cubic(a)), f0, 1 - anim.clamp01((a - 0.5) / 0.3)
+        else:
+            base, top, alpha = self._zoomed(f0, 1 + 0.05 * anim.in_cubic(a)), f1, anim.clamp01(a * 5)
+        out = base.copy()
+        s_now, s_prev = sc(a), sc(a - 1.0 / n)
+        if alpha <= 0.002:
+            return out
+        k = max(0.02, s_now)
+        w, h = max(1, int(round(W * k))), max(1, int(round(H * k)))
+        img = top.resize((w, h), Image.BILINEAR)
+        if abs(s_prev / s_now - 1) > 0.012:
+            img = anim.zoom_blur(img, s_prev / s_now)
+        if alpha < 0.999:
+            img = with_alpha(img, alpha)
+        composite_at(out, img, cx - img.width / 2 + (W / 2 - cx) * k, cy - img.height / 2 + (H / 2 - cy) * k)
+        return out
+
+    def _flood_geom(self, spec, default_pos):
+        """A flood end-point -> (cx, cy, half_w, half_h, radius) in output px. spec: [x, y, w, h] design px (a button,
+        a card), [x, y] (a point) or None (default_pos)."""
+        U = self.U
+        if spec is not None and len(spec) == 4:
+            x, y = self.pos(spec[:2])
+            w, h = float(spec[2]) * U, float(spec[3]) * U
+            return x + w / 2, y + h / 2, w / 2, h / 2, None
+        x, y = self.pos(spec if spec is not None else default_pos)
+        return x, y, 0.0, 0.0, None
+
+    def _flood(self, f0, f1, a, tr):
+        """flood: a shape grows out of `from` (a rect or point) past every corner, holds the solid colour for a beat,
+        then contracts into `to` over the next picture (where it shrinks to a point, or lands as that rect and melts
+        away: put it on a dark element of the next shot and the joint disappears)."""
+        W, H, U = self.W, self.H, self.U
+        pos = tr.get("pos", ["50%", "50%"])
+        g0 = self._flood_geom(tr.get("from"), pos)
+        g1 = self._flood_geom(tr.get("to"), pos) if tr.get("to") is not None else g0
+        hold = anim.clamp01(tr.get("_hold", 0.18))
+        grow_end, shrink_start = (1 - hold) / 2, (1 + hold) / 2
+        col = color(tr.get("color", "#0B0B0F"), self.pal)
+        shape = tr.get("shape", "circle")
+
+        def full(g):          # half size that covers the frame from this centre, past the corners
+            cx, cy = g[0], g[1]
+            return math.hypot(max(cx, W - cx), max(cy, H - cy)) * 1.08
+
+        def rr(g):            # the end shape's corner radius
+            if shape == "rect":
+                return float(tr.get("radius", 0)) * U
+            if shape == "squircle":
+                return min(g[2], g[3], float(tr.get("radius", 48)) * U)
+            return min(g[2], g[3])
+        if a <= grow_end:
+            e = anim.in_out_cubic(a / max(grow_end, 1e-6))
+            g, base = g0, f0
+        elif a >= shrink_start:
+            e = 1 - anim.in_out_cubic((a - shrink_start) / max(1 - shrink_start, 1e-6))
+            g, base = g1, f1
+        else:
+            return Image.new("RGBA", (W, H), col)
+        R = full(g)
+        hw, hh = g[2] + (R - g[2]) * e, g[3] + (R - g[3]) * e
+        r = min(hw, hh, rr(g) + (R - rr(g)) * e)
+        alpha = 1.0
+        if a >= shrink_start and (g1[2] > 0 or g1[3] > 0):
+            alpha = anim.clamp01(e / 0.14)    # landed on its rect: melt into the picture underneath
+        if hw < 0.5 and hh < 0.5:
+            return base
+        s = 0.5
+        w, h = int(W * s), int(H * s)
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        qx = np.abs(xx / s - g[0]) - (hw - r)
+        qy = np.abs(yy / s - g[1]) - (hh - r)
+        d = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - r
+        m = np.clip(0.5 - d * s / 1.2, 0, 1) * alpha
+        mask = Image.fromarray((m * 255).astype(np.uint8)).resize((W, H), Image.BILINEAR)
+        return Image.composite(Image.new("RGBA", (W, H), col), base, mask)
 
     def _zoomed(self, fr, z, cx=None, cy=None):
         W, H = self.W, self.H
@@ -983,12 +1116,73 @@ class Renderer:
                                                width=max(2, int(3 * U)))
         composite_at(frame, edge.resize((w, h), Image.LANCZOS), x0, y0)
 
+    def draw_liquid(self, frame, rect, box, alpha=1.0):
+        """Liquid glass (iOS 26): the picture behind stays sharp and bends at the rim like a lens (a displacement field
+        from the rounded rect's distance, R/G/B at slightly different strengths for chromatic edges), a faint tint and
+        a rim light brightest where it faces the light (top-left)."""
+        import cv2
+        U = self.U
+        X0, Y0, X1, Y1 = [int(round(v)) for v in rect]
+        w, h = X1 - X0, Y1 - Y0
+        if w < 8 or h < 8 or alpha <= 0.01:
+            return
+        r = min(box.get("radius", 999) * U, w / 2, h / 2)
+        bez = max(4.0, min(w, h) * float(box.get("bezel", 0.32)))         # width of the bending rim
+        mag = float(box.get("refract", 1.0)) * bez * 0.9                     # how far the rim pulls the picture in
+        m = int(mag * 1.3) + 4
+        fw, fh = frame.size
+        cx0, cy0, cx1, cy1 = max(0, X0 - m), max(0, Y0 - m), min(fw, X1 + m), min(fh, Y1 + m)
+        if cx1 - cx0 < 4 or cy1 - cy0 < 4:
+            return
+        src = np.asarray(frame.crop((cx0, cy0, cx1, cy1)).convert("RGB")).astype(np.float32)
+        bl = float(box.get("blur", 2.5)) * U
+        if bl > 0.3:
+            src = cv2.GaussianBlur(src, (0, 0), bl)
+        key = ("liquid", w, h, int(r), int(bez))
+        if key not in self._mask_cache:
+            yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+            qx = np.abs(xx + 0.5 - w / 2) - (w / 2 - r)
+            qy = np.abs(yy + 0.5 - h / 2) - (h / 2 - r)
+            d = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - r   # <0 inside
+            gy, gx = np.gradient(cv2.GaussianBlur(d, (0, 0), 1.5))
+            n = np.hypot(gx, gy) + 1e-6
+            nx, ny = gx / n, gy / n                                          # outward normal
+            t = np.clip(1 + d / bez, 0, 1) ** 2.2                            # 0 in the flat middle, 1 at the rim
+            inside = np.clip(0.5 - d, 0, 1)
+            light = np.clip(-(nx * -0.62 + ny * -0.78), -1, 1)               # facing the light at the top-left
+            rim = np.exp(-((d + 1.6 * U) / (1.4 * U)) ** 2)
+            self._mask_cache[key] = (xx, yy, nx, ny, t, inside, light, rim)
+        xx, yy, nx, ny, t, inside, light, rim = self._mask_cache[key]
+        ox, oy = X0 - cx0, Y0 - cy0
+        out = np.empty((h, w, 3), np.float32)
+        for ch, k in enumerate((1.08, 1.0, 0.9)):
+            mx = (xx + ox - nx * t * mag * k).astype(np.float32)
+            my = (yy + oy - ny * t * mag * k).astype(np.float32)
+            out[..., ch] = cv2.remap(src[..., ch], mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        tint = np.array(color(box.get("color", "#FFFFFF"), self.pal)[:3], np.float32)
+        op = float(box.get("opacity", 0.08))
+        out = out * (1 - op) + tint * op
+        out = out + (255 - out) * (0.10 * t)[..., None]                       # the rim catches light
+        spec = rim * (0.55 + 0.45 * light) + 0.25 * np.exp(-((yy - h * 0.06) / (h * 0.12)) ** 2) * inside * (1 - t)
+        out = out + (255 - out) * np.clip(spec * float(box.get("shine", 0.9)), 0, 1)[..., None]
+        a = (inside * alpha * 255).astype(np.uint8)
+        layer = Image.fromarray(np.dstack([np.clip(out, 0, 255).astype(np.uint8), a]), "RGBA")
+        sh = Image.new("RGBA", (w + int(80 * U), h + int(80 * U)), (0, 0, 0, 0))
+        ImageDraw.Draw(sh).rounded_rectangle((int(40 * U), int(50 * U), int(40 * U) + w, int(50 * U) + h), int(r),
+                                             fill=(0, 0, 0, int(60 * alpha * float(box.get("shadow", 1.0)))))
+        composite_at(frame, sh.filter(ImageFilter.GaussianBlur(22 * U)), X0 - 40 * U, Y0 - 40 * U)
+        composite_at(frame, layer, X0, Y0)
+
     def _glass_for(self, frame, layer_box, ox, oy, alpha):
         L = layer_box[2] if len(layer_box) > 2 else None
-        if L is None or not L.box or L.box.get("mode") != "glass":
+        if L is None or not L.box or L.box.get("mode") not in ("glass", "liquid"):
             return
         x0, y0, x1, y1 = layer_box[1]
-        self.draw_glass(frame, (ox + x0 - L.bpx, oy + y0 - L.bpy, ox + x1 + L.bpx, oy + y1 + L.bpy), L.box, alpha)
+        r = (ox + x0 - L.bpx, oy + y0 - L.bpy, ox + x1 + L.bpx, oy + y1 + L.bpy)
+        if L.box.get("mode") == "liquid":
+            self.draw_liquid(frame, r, L.box, alpha)
+        else:
+            self.draw_glass(frame, r, L.box, alpha)
 
     def place(self, frame, layer_box, pos, anchor="center", alpha=1.0, dy=0.0, scale=1.0, tf=None):
         img, (x0, y0, x1, y1) = layer_box[0], layer_box[1]
@@ -1022,7 +1216,15 @@ class Renderer:
         return self._img_cache[key]
 
     def _anim_tf(self, an, dt, remaining, default_in="fade"):
-        """Combined entrance / exit / idle transform for an animated element."""
+        """Combined entrance / exit / idle transform for an animated element (+ motion blur with motion_blur:)."""
+        tf = self._anim_tf0(an, dt, remaining, default_in)
+        mb = an.get("motion_blur")
+        if mb:
+            sh = 1.0 / self.F
+            tf = anim.with_motion(tf, self._anim_tf0(an, dt - sh, remaining + sh, default_in), float(mb))
+        return tf
+
+    def _anim_tf0(self, an, dt, remaining, default_in="fade"):
         tin = an.get("in", default_in)
         d_in, d_out = an.get("dur", 0.35), an.get("out_dur", 0.3)
         tf = anim.transform(tin, dt / d_in if d_in else 1.0, an.get("dist", 40), an.get("ease")) if tin != "none" else anim._t()
@@ -1035,11 +1237,15 @@ class Renderer:
     def draw_section_text(self, frame, s, g):
         F = self.F
         a = s["anim"]
-        dt = (g - s["start"]) / F
+        dt = (g - s["start"]) / F - (a.get("delay") or 0)
+        if dt < 0:
+            return None
         remaining = (s["end"] - g) / F
         by = a.get("by", "block")
         effect = a.get("effect")
         if by in ("word", "letter", "line"):
+            if a.get("sync"):
+                a = dict(a, _t0=s["start"] / F + (a.get("delay") or 0))
             return self.draw_parts(frame, s["text"], s["style"], s["pos"], "center", a, dt, remaining)
         e = ease_out(dt / a["in"]) if a.get("in") else 1.0
         alpha = e
@@ -1049,7 +1255,8 @@ class Renderer:
         self.draw_accent_marks(frame, lay, s["style"], s["pos"], "center", dt, phase="under")
         if effect:
             tf = self._anim_tf({"in": effect, "dur": a.get("in") or 0.35, "ease": a.get("ease"), "dist": a.get("rise") or 40,
-                                "out": a.get("out_effect"), "out_dur": a.get("out") or 0.3, "idle": a.get("idle")}, dt, remaining)
+                                "out": a.get("out_effect"), "out_dur": a.get("out") or 0.3, "idle": a.get("idle"),
+                                "motion_blur": a.get("motion_blur")}, dt, remaining)
             b = self.place(frame, lay, s["pos"], "center", 1.0 if not a.get("out") or a.get("out_effect") else min(1.0, remaining / a["out"]), 0, 1.0, tf)
         else:
             pop = 1.0
@@ -1090,16 +1297,34 @@ class Renderer:
                 strikes[part["word"]] = t_s
                 shift += d_in + strike_at + strike_draw + 0.15
         last_vis = None
-        for part, delay in zip(P["parts"], delays):
-            p = (dt - delay) / d_in if d_in else 1.0
-            if p <= 0:
-                continue
+        mb = a.get("motion_blur") if effect != "mask" else None
+
+        def part_tf(part, delay, dt, remaining):
             dist = part["img"].height if effect == "mask" else (a.get("rise") or a.get("dist", 40))
-            tf = anim.transform(effect, p, dist if effect != "mask" else dist / self.U, a.get("ease"))
+            tf = anim.transform(effect, (dt - delay) / d_in if d_in else 1.0, dist if effect != "mask" else dist / self.U, a.get("ease"))
             if a.get("out_effect") and a.get("out") and remaining < a["out"]:
                 tf = anim.combine(tf, anim.exit_transform(a["out_effect"], 1 - remaining / a["out"], a.get("dist", 40)))
             if a.get("idle"):
                 tf = anim.combine(tf, anim.idle(a["idle"], dt, a.get("idle_amp", 1.0)))
+            return tf
+
+        sync = self._sync_times(L, a) if a.get("sync") else None
+        synced = self._sync_layout(P, L, a, dt, remaining, ox, oy, sync) if sync is not None else None
+        for part, delay in zip(P["parts"], delays):
+            if synced is not None:
+                tf, sdx = synced[part["index"]]
+                tf["alpha"] *= out_a
+                img, (dx, dy) = anim.apply(part["img"], tf, self.U)
+                if img is not None:
+                    composite_at(frame, img, ox + part["x"] + dx + sdx, oy + part["y"] + dy)
+                last_vis = part
+                continue
+            p = (dt - delay) / d_in if d_in else 1.0
+            if p <= 0:
+                continue
+            tf = part_tf(part, delay, dt, remaining)
+            if mb:
+                tf = anim.with_motion(tf, part_tf(part, delay, dt - 1.0 / self.F, remaining + 1.0 / self.F), float(mb))
             ts = strikes.get(part["word"])
             if ts is not None and dt > ts:
                 tf["alpha"] *= 1 - 0.6 * anim.clamp01((dt - ts) / strike_draw)
@@ -1131,6 +1356,87 @@ class Renderer:
         b0 = P["box"]
         self.draw_accent_marks(frame, (None, P["box"], L), style, pos, anchor, dt - len(P["parts"]) * stagger * 0.5, phase="over")
         return (ox + b0[0], oy + b0[1], ox + b0[2], oy + b0[3])
+
+    def _sync_layout(self, P, L, a, dt, remaining, ox, oy, sync):
+        """Voice-synced words (anim.sync): every word is on screen; the word being spoken zooms (bump: in and out over
+        the word; pop: spring = past the zoom, held while it is said, settled after). Its neighbours on the line slide
+        apart so nothing overlaps, and a line never grows past the frame. With `upcoming`, words not said yet sit at
+        that opacity from `upcoming_at` (s after the element starts; default: its first spoken word): frame 0 stays lit.
+        -> {part index: (transform, extra x shift)}"""
+        t_abs = a.get("_t0", 0.0) + dt
+        zoom = float(a.get("zoom", 0.15))
+        up = a.get("upcoming")
+        dim_from = (a.get("_t0", 0.0) + float(a["upcoming_at"])) if a.get("upcoming_at") is not None else \
+            min((v[0] for v in sync.values()), default=None)
+        out = {}
+        for part in P["parts"]:
+            tf = anim._t()
+            span = sync.get(part["word"])
+            if span and a.get("pop") == "spring":
+                att, rel = 0.13, 0.22
+                if span[0] <= t_abs < span[1] + rel:
+                    if t_abs < span[0] + att:
+                        e = anim.ease("back", (t_abs - span[0]) / att)
+                    elif t_abs < span[1]:
+                        e = 1.0
+                    else:
+                        e = 1 - anim.in_out_cubic((t_abs - span[1]) / rel)
+                    tf["scale"] = 1 + zoom * e
+            elif span and span[0] <= t_abs < span[1]:
+                k = anim.clamp01((t_abs - span[0]) / (span[1] - span[0]))
+                tf["scale"] = 1 + zoom * math.sin(math.pi * k)
+            if up is not None and span and dim_from is not None and dim_from <= t_abs < span[0]:
+                tf["alpha"] *= 1 - (1 - float(up)) * anim.clamp01((t_abs - dim_from) / 0.25)
+            if a.get("out_effect") and a.get("out") and remaining < a["out"]:
+                tf = anim.combine(tf, anim.exit_transform(a["out_effect"], 1 - remaining / a["out"], a.get("dist", 40)))
+            out[part["index"]] = [tf, 0.0]
+        m = 12 * self.U
+        lines = {}
+        for part in P["parts"]:
+            lines.setdefault(part["line"], []).append(part)
+        for parts in lines.values():
+            parts.sort(key=lambda q: q["x"])
+            grow = [q["img"].width * (out[q["index"]][0]["scale"] - 1) for q in parts]
+            total = sum(grow)
+            if total <= 0:
+                continue
+            x0 = ox + parts[0]["x"]
+            x1 = ox + parts[-1]["x"] + parts[-1]["img"].width
+            room = max(0.0, min(2 * (x0 - m), 2 * (self.W - m - x1), self.W - 2 * m - (x1 - x0)))
+            f = min(1.0, room / total)
+            for i, q in enumerate(parts):          # shrink the zoom to fit, then push the neighbours apart
+                tf = out[q["index"]][0]
+                tf["scale"] = 1 + (tf["scale"] - 1) * f
+                out[q["index"]][1] = (sum(grow[:i]) - sum(grow[i + 1:])) * f / 2
+            for q in parts:                        # vertical room too (big single words)
+                tf = out[q["index"]][0]
+                h = q["img"].height
+                cy = oy + q["y"] + h / 2
+                tf["scale"] = max(1.0, min(tf["scale"], 2 * (cy - m) / h, 2 * (self.H - m - cy) / h))
+        return {k: (v[0], v[1]) for k, v in out.items()}
+
+    def _sync_times(self, L, a):
+        """anim.sync: voice -> {layout word index: (start, end)} at output time. The text's words are found in the
+        voice-over transcript (the first run of them at or after the element's start), so each zooms while it is said."""
+        key = ("sync", id(L), round(a.get("_t0", 0.0), 3))
+        if key in self._parts_cache:
+            return self._parts_cache[key]
+
+        def norm(w):
+            return re.sub(r"[^a-z0-9]+", "", str(w).lower().replace("\u2019", "'").replace("'", ""))
+        words = [norm(wd["s"]) for wd in L.words]
+        vo = [w for w in self.vo_words if w["end"] >= a.get("_t0", 0.0) - 0.3]
+        vn = [norm(w["w"]) for w in vo]
+        out = {}
+        if words and vn:
+            import difflib
+            sm = difflib.SequenceMatcher(None, words, vn[:len(words) + 40], autojunk=False)
+            for i, j, n in sm.get_matching_blocks():
+                for k in range(n):
+                    w = vo[j + k]
+                    out[i + k] = (w["start"], max(w["end"], w["start"] + 0.24))
+        self._parts_cache[key] = out
+        return out
 
     def draw_accent_marks(self, frame, lay, style, pos, anchor, dt, phase="over"):
         st = brandmod.text_style(self.brand, style)
@@ -1178,7 +1484,9 @@ class Renderer:
             if an and an.get("by") in ("word", "letter", "line"):
                 a = {"by": an["by"], "effect": an.get("in"), "stagger": an.get("stagger"), "in": an.get("dur"), "ease": an.get("ease"),
                      "out": an.get("out_dur", 0.3) if an.get("out") else ov["fade_out"], "out_effect": an.get("out"), "idle": an.get("idle"),
-                     "caret": an.get("caret"), "rise": an.get("dist")}
+                     "caret": an.get("caret"), "rise": an.get("dist"), "strike_at": an.get("strike_at"),
+                     "sync": an.get("sync"), "zoom": an.get("zoom"), "pop": an.get("pop"), "upcoming": an.get("upcoming"),
+                     "upcoming_at": an.get("upcoming_at"), "_t0": ov["start"] / F}
                 a = {k: v for k, v in a.items() if v is not None}
                 return self.draw_parts(frame, ov["text"], ov["style"], ov["pos"], ov["anchor"], a, dt, remaining)
             lay = self.text_layer(ov["text"], ov["style"])
@@ -1202,7 +1510,13 @@ class Renderer:
 
     def counter_text(self, c, dt):
         p = anim.ease(c.get("ease", "out"), (dt - c.get("delay", 0.0)) / max(0.01, c.get("dur", 1.2)))
+        if c.get("values"):                     # several numbers in one line: text "{} to {}", values [[29, 25], [49, 44]]
+            nums = [self._counter_num(c, a + (b - a) * p) for a, b in c["values"]]
+            return c.get("text", " ".join("{}" for _ in nums)).format(*nums)
         v = c["from"] + (c["to"] - c["from"]) * p
+        return f"{c.get('prefix', '')}{self._counter_num(c, v)}{c.get('suffix', '')}"
+
+    def _counter_num(self, c, v):
         fmt = c.get("format", "int")
         dec = c.get("decimals", 1)
         if fmt == "time":
@@ -1218,7 +1532,7 @@ class Renderer:
             s = f"{round(v):,d}"
         else:
             s = f"{round(v):d}"
-        return f"{c.get('prefix', '')}{s}{c.get('suffix', '')}"
+        return s
 
     def draw_shine(self, frame, img, b, dt, sh):
         """A light sweep across an image overlay (logos, buttons)."""
@@ -1324,9 +1638,10 @@ class Renderer:
         cx, cy = self.pos(lay.get("pos", ["50%", "50%"]))
         typ = lay.get("type", "card")
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        if typ == "iphone":
+        if typ in ("iphone", "android"):
             dev = self.device_for({"src": ov["src"], "layout": {"type": "iphone", "style": "screen" if lay.get("bezel") is False else "full",
-                                                                  **{k: v for k, v in lay.items() if k in ("finish", "island", "shadow")}}}, img)
+                                                                  **({"device": "android"} if typ == "android" else {}),
+                                                                  **{k: v for k, v in lay.items() if k in ("finish", "island", "shadow", "camera")}}}, img)
             sw = self.px(lay.get("width", 360), W)
             sh = sw * info["height"] / info["width"]
             self._draw_device(layer, dev, img, cx - sw / 2, cy - sh / 2, sw, sh, 1.0, straight=True)
@@ -1350,12 +1665,16 @@ class Renderer:
                 self._mask_cache[mkey] = rounded_mask(w, h, r)
             content.putalpha(self._mask_cache[mkey])
             X, Y = int(round(cx - w / 2)), int(round(cy - h / 2))
-            shadow = Image.new("L", (W, H), 0)
-            ImageDraw.Draw(shadow).rounded_rectangle((X, Y + 18 * self.U, X + w, Y + h + 18 * self.U), r, fill=140)
-            shadow = shadow.filter(ImageFilter.GaussianBlur(26 * self.U))
-            sl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            sl.putalpha(shadow)
-            layer.alpha_composite(sl)
+            sh_k = lay.get("shadow", 1.0)            # false / 0 = no drop shadow (a flat panel that blends into the stage)
+            sh_k = 0.0 if sh_k is False else float(sh_k)
+            if sh_k > 0:
+                shadow = Image.new("L", (W, H), 0)
+                ImageDraw.Draw(shadow).rounded_rectangle((X, Y + 18 * self.U, X + w, Y + h + 18 * self.U), r,
+                                                         fill=int(min(255, 140 * sh_k)))
+                shadow = shadow.filter(ImageFilter.GaussianBlur(26 * self.U))
+                sl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+                sl.putalpha(shadow)
+                layer.alpha_composite(sl)
             layer.alpha_composite(content, (X, Y))
             if lay.get("border"):
                 bw_ = max(2, int(self.px(lay.get("border_width", 6), W)))
@@ -1372,15 +1691,24 @@ class Renderer:
             composite_at(frame, out, bb[0] + dx, bb[1] + dy)
         return None
 
-    def draw_texts(self, frame, g):
+    def draw_texts(self, frame, g, only=None, skip=()):
+        """Section texts, overlays and captions at frame g. only: draw just these sections' texts + overlays (a
+        transition with carry: moves them with their picture); skip: leave these sections out (already carried)."""
         F = self.F
         boxes = []
-        for s in self.plan["sections"]:
+        for si, s in enumerate(self.plan["sections"]):
+            if (only is not None and si not in only) or si in skip:
+                continue
             if s["text"] and s["start"] <= g < s["end"] and not s.get("behind"):
                 b = self.draw_section_text(frame, s, g)
                 if b:
                     boxes.append(("section text '" + s["text"].replace(chr(10), " ")[:28] + "'", b))
         for ov in self.plan["overlays"]:
+            sec = ov.get("sec")
+            if (only is not None and sec not in only) or (sec is not None and sec in skip):
+                continue
+            if ov["start"] <= g < ov["end"] and ov.get("behind"):
+                continue                                  # drawn behind the subject (behind_subject)
             if ov["start"] <= g < ov["end"]:
                 b = self.draw_overlay(frame, ov, g)
                 if b and ov["kind"] in ("text", "counter"):
@@ -1389,7 +1717,7 @@ class Renderer:
                 self._ov_gens.pop(("motion", id(ov))).close()
             elif g >= ov["end"] and ("video", id(ov)) in self._ov_gens:
                 self._ov_gens.pop(("video", id(ov))).close()
-        if self.chunks:
+        if self.chunks and only is None:
             b = self.draw_caption(frame, g / F - self.cap_offset)
             if b:
                 boxes.append(("caption", b))
@@ -1423,7 +1751,7 @@ class Renderer:
                     tf = anim._t()
                     if part["word"] == wi:
                         k = anim.clamp01(wdt / 0.22)
-                        tf["scale"] = 1 + 0.16 * math.sin(math.pi * k) * (1 - k * 0.3)
+                        tf["scale"] = 1 + self.cap_style.get("zoom", 0.16) * math.sin(math.pi * k) * (1 - k * 0.3)
                 img, (dx, dy) = anim.apply(part["img"], tf, self.U)
                 if img is not None:
                     composite_at(frame, img, ox + part["x"] + dx, oy + part["y"] + dy)
@@ -1482,6 +1810,121 @@ class Renderer:
             cx1, cy1 = min(lay.width, X1 - x0), min(lay.height, Y1 - y0)
             if cx1 > cx0 and cy1 > cy0:
                 composite_at(frame, lay.crop((cx0, cy0, cx1, cy1)), x0 + cx0, y0 + cy0)
+
+    CURSOR = [(0, 0), (0, 24.5), (6.0, 18.8), (9.9, 27.6), (13.6, 26.0), (9.8, 17.3), (17.6, 17.3)]   # macOS arrow, tip at 0,0
+
+    def _pointer_state(self, seg, g, pt):
+        """Where the pointer is at frame g (output px), how pressed (0-1), how visible (0-1) and the long-press ring
+        progress (or None), from the clip's taps: it glides from tap to tap, dips on each press, follows a drag."""
+        F, W, H, U = self.F, self.W, self.H, self.U
+        taps = sorted([t for t in self.plan.get("taps", []) if t["seg"] == seg["label"]], key=lambda t: t["g"])
+        if not taps:
+            return None
+        ev = []
+        for t in taps:
+            down = float(t.get("drag_dur") or 0.55) if t.get("drag") else float(t.get("hold") or 0.1)
+            ev.append({"g": t["g"], "rel": t["g"] + down * F, "a": self.map_pt(seg["label"], *t["pos"]),
+                       "b": self.map_pt(seg["label"], *(t.get("drag") or t["pos"])), "hold": t.get("hold"), "drag": bool(t.get("drag"))})
+        enter, travel = float(pt.get("enter", 0.55)) * F, float(pt.get("travel", 0.5)) * F
+        exit_ = pt.get("exit", 0.7)
+        cursor = pt.get("style") == "cursor"
+        far = (W * 1.12, H * 0.92) if cursor else None
+        e0 = ev[0]
+        if g < e0["g"]:
+            p = anim.clamp01(1 - (e0["g"] - g) / max(1.0, min(enter, e0["g"] - seg["start"] + enter * 0.4)))
+            if p <= 0:
+                return None
+            q = anim.out_cubic(p)
+            start = far or (e0["a"][0] + 90 * U, e0["a"][1] + 150 * U)
+            pos = (start[0] + (e0["a"][0] - start[0]) * q, start[1] + (e0["a"][1] - start[1]) * q)
+            return pos, anim.clamp01(1 - (e0["g"] - g) / (0.06 * F)), (1.0 if cursor else anim.clamp01(p * 2.2)), None
+        for i, e in enumerate(ev):
+            nxt = ev[i + 1] if i + 1 < len(ev) else None
+            if g <= e["rel"]:              # pressed: hold still, or follow the drag
+                u = anim.clamp01((g - e["g"]) / max(1.0, e["rel"] - e["g"]))
+                q = anim.in_out_cubic(u) if e["drag"] else 0.0
+                pos = (e["a"][0] + (e["b"][0] - e["a"][0]) * q, e["a"][1] + (e["b"][1] - e["a"][1]) * q)
+                return pos, 1.0, 1.0, (u if e["hold"] and pt.get("ring", True) else None)
+            if nxt is None or g < nxt["g"]:
+                lift = anim.clamp01(1 - (g - e["rel"]) / (0.08 * F))
+                if nxt is not None:        # glide to the next tap, arriving as it presses
+                    T = min(travel, (nxt["g"] - e["rel"]) * 0.9)
+                    u = anim.clamp01(1 - (nxt["g"] - g) / max(1.0, T))
+                    q = anim.in_out_cubic(u)
+                    pos = (e["b"][0] + (nxt["a"][0] - e["b"][0]) * q, e["b"][1] + (nxt["a"][1] - e["b"][1]) * q)
+                    return pos, max(lift, anim.clamp01(1 - (nxt["g"] - g) / (0.06 * F))), 1.0, None
+                if exit_ is False:
+                    return e["b"], lift, 1.0, None
+                u = anim.clamp01((g - e["rel"] - float(exit_) * F) / (0.45 * F))
+                q = anim.in_cubic(u)
+                end = far or (e["b"][0] + 90 * U, e["b"][1] + 150 * U)
+                pos = (e["b"][0] + (end[0] - e["b"][0]) * q, e["b"][1] + (end[1] - e["b"][1]) * q)
+                return pos, lift, (1.0 if cursor else 1 - u), None
+        return None
+
+    def _pointer_sprite(self, style, size, press, col):
+        key = ("ptr", style, int(size * 100), int(press * 8), col)
+        if key in self._mask_cache:
+            return self._mask_cache[key]
+        U, ss = self.U, 3
+        if style == "cursor":
+            k = 2.1 * U * size * (1 - 0.14 * press) * ss
+            pts = [(x * k, y * k) for x, y in self.CURSOR]
+            S = int(32 * k)
+            lay = Image.new("RGBA", (2 * S, 2 * S), (0, 0, 0, 0))
+            poly = [(S + x, S + y) for x, y in pts]
+            sh = Image.new("RGBA", lay.size, (0, 0, 0, 0))
+            ImageDraw.Draw(sh).polygon([(x + 2.5 * k, y + 4 * k) for x, y in poly], fill=(0, 0, 0, int(90 - 30 * press)))
+            lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(3.2 * k)))
+            d = ImageDraw.Draw(lay)
+            d.line(poly + poly[:1], fill=(255, 255, 255, 255), width=max(2, int(3.4 * k)), joint="curve")   # white rim
+            d.polygon(poly, fill=color(col or "#000000", self.pal))
+            spr = (lay.resize((2 * S // ss, 2 * S // ss), Image.LANCZOS), S // ss)    # (image, tip offset)
+        else:
+            r = 34 * U * size * (1 - 0.16 * press)
+            R = int(r + 22 * U) + 2
+            lay = Image.new("RGBA", (2 * R * ss, 2 * R * ss), (0, 0, 0, 0))
+            c = R * ss
+            sh = Image.new("RGBA", lay.size, (0, 0, 0, 0))
+            ImageDraw.Draw(sh).ellipse((c - r * ss, c - r * ss + 6 * U * ss, c + r * ss, c + r * ss + 6 * U * ss), fill=(0, 0, 0, int(70 - 30 * press)))
+            lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(9 * U * ss)))
+            fill = color(col or "#FFFFFF", self.pal)
+            ImageDraw.Draw(lay).ellipse((c - r * ss, c - r * ss, c + r * ss, c + r * ss), fill=fill[:3] + (int(150 + 70 * press),),
+                                        outline=(30, 24, 40, 70), width=max(1, int(2 * U * ss)))
+            spr = (lay.resize((2 * R, 2 * R), Image.LANCZOS), R)
+        self._mask_cache[key] = spr
+        return spr
+
+    def draw_pointer(self, frame, g, seg):
+        """A finger (touch dot) or a cursor that drives the recording: glides between the clip's taps, dips on each press,
+        follows drags, shows a ring on long-presses (taps' hold / drag)."""
+        pt = seg["pointer"]
+        st = self._pointer_state(seg, g, pt)
+        if st is None:
+            return
+        (x, y), press, vis, ring = st
+        if vis <= 0.01:
+            return
+        style, size = pt.get("style", "touch"), float(pt.get("size", 1.0))
+        if style == "touch":     # follow the phone's on-screen scale, like tap ripples
+            size *= max(0.6, min(1.6, self._xf[seg["label"]][0] / 0.687))
+        img, off = self._pointer_sprite(style, size, round(press * 8) / 8, pt.get("color"))
+        if style == "cursor":    # lean into the move
+            prev = self._pointer_state(seg, g - 1, pt)
+            vx = (x - prev[0][0]) / self.U if prev else 0.0
+            ang = max(-16.0, min(16.0, -vx * 0.55))
+            if abs(ang) > 0.3:
+                img = img.rotate(ang, resample=Image.BICUBIC, center=(off, off))
+        if vis < 0.999:
+            img = with_alpha(img, vis)
+        if ring is not None:
+            R = 58 * self.U * size
+            lay = Image.new("RGBA", (int(4 * R), int(4 * R)), (0, 0, 0, 0))
+            c = 2 * R
+            ImageDraw.Draw(lay).arc((c - R, c - R, c + R, c + R), -90, -90 + 360 * anim.out_cubic(ring),
+                                    fill=color("accent", self.pal), width=max(3, int(7 * self.U)))
+            composite_at(frame, lay, x - c, y - c)
+        composite_at(frame, img, x - off, y - off)
 
     def draw_lifts(self, frame, seg, img, k):
         """Pop-out callouts: a region of the real recording lifts off the screen, scales up, holds, returns."""
@@ -1567,9 +2010,18 @@ class Renderer:
                        "bottom": ((x0 + x1) / 2, y1 + gap)}[side]
                 vx, vy = {"left": (-1, 0.35), "right": (1, 0.35), "top": (0.35, -1), "bottom": (0.35, 1)}[side]
                 start = self.map_pt(seg["label"], *m["from"]) if m.get("from") else (end[0] + vx * L_, end[1] + vy * L_)
-            shapes.draw(frame, kind, rect, p, col, m.get("width", self.marks.get("width", 9)), self.U, hand=m.get("hand", True),
+            # marks that live on the page (marker, underline, strike) stay inside the clip's window (a zoomed card
+            # or screen); circles / arrows may reach outside it. clip: true|false overrides.
+            win = self._xf[seg["label"]][4] if len(self._xf[seg["label"]]) > 4 else None
+            clip = m.get("clip", kind in ("highlight", "underline", "strike")) and win is not None
+            target = Image.new("RGBA", frame.size, (0, 0, 0, 0)) if clip else frame
+            shapes.draw(target, kind, rect, p, col, m.get("width", self.marks.get("width", 9)), self.U, hand=m.get("hand", True),
                         pad=m.get("pad"), radius=m.get("radius"), glow=m.get("glow", self.marks.get("glow", 0)), alpha=fade,
                         seed=i, start=start, end=end, strength=m.get("strength", 0.6))
+            if clip:
+                bx = tuple(int(round(v)) for v in (max(0, win[0]), max(0, win[1]), min(frame.width, win[2]), min(frame.height, win[3])))
+                if bx[2] > bx[0] and bx[3] > bx[1]:
+                    frame.alpha_composite(target.crop(bx), (bx[0], bx[1]))
             if m.get("label") and p > 0.6:
                 self._mark_label(frame, m, rect, anim.clamp01((p - 0.6) / 0.4) * fade)
 
@@ -1583,7 +2035,43 @@ class Renderer:
             return None
         return self.map_pt(seg["label"], best["pos"][0], best["pos"][1])
 
+    def redact(self, seg, img, k):
+        """Privacy: blur / pixelate / fill rectangles of the source (source px) before layout, so they follow any
+        layout, camera, tilt or plate warp. Each item is active from its start (src/at, default 0) for `dur` (default: on)."""
+        t = k / self.F
+        act = [r for r in seg.get("redact") or [] if r.get("t0", 0.0) <= t + 1e-6 and
+               (r.get("dur") is None or t < r.get("t0", 0.0) + float(r["dur"]))]
+        if not act or seg["kind"] in ("color", "motion"):
+            return img
+        s = self._src_scale(seg, img)
+        out = img.copy()
+        for r in act:
+            x, y, w, h = (float(v) * s for v in r["rect"])
+            box = (max(0, int(x)), max(0, int(y)), min(out.width, int(round(x + w))), min(out.height, int(round(y + h))))
+            if box[2] <= box[0] or box[3] <= box[1]:
+                continue
+            reg = out.crop(box)
+            style = r.get("style", "blur")
+            if style == "pixelate":
+                n = max(2, int(float(r.get("strength", 18)) * s))
+                reg = reg.resize((max(1, reg.width // n), max(1, reg.height // n)), Image.BILINEAR).resize(reg.size, Image.NEAREST)
+            elif style == "fill":
+                reg = Image.new(reg.mode, reg.size, color(r.get("color", "#000000"), self.pal)[:len(reg.mode)])
+            else:
+                rad = max(2.0, float(r.get("strength", 28)) * s)
+                pad = int(rad * 2)              # blur a padded crop so the edges don't pick up a dark border
+                pb = (max(0, box[0] - pad), max(0, box[1] - pad), min(out.width, box[2] + pad), min(out.height, box[3] + pad))
+                big = out.crop(pb).filter(ImageFilter.GaussianBlur(rad)).filter(ImageFilter.GaussianBlur(rad))
+                reg = big.crop((box[0] - pb[0], box[1] - pb[1], box[2] - pb[0], box[3] - pb[1]))
+            rr = float(r.get("radius", 0)) * s
+            if rr > 0:
+                out.paste(reg, box, rounded_mask(reg.width, reg.height, int(rr)))
+            else:
+                out.paste(reg, box)
+        return out
+
     def compose_full(self, seg, img, k, g):
+        img = self.redact(seg, img, k)
         fr = self.compose(seg, img, k)
         if seg.get("taps"):
             self.draw_taps(fr, g, seg)
@@ -1591,7 +2079,31 @@ class Renderer:
             self.draw_marks(fr, seg, k)
         if seg.get("lifts"):
             self.draw_lifts(fr, seg, img, k)
+        if seg.get("pointer") and seg.get("taps") and seg["label"] in self._xf:
+            self.draw_pointer(fr, g, seg)
+        if seg.get("reveal"):
+            fr = self.apply_reveal(fr, seg, k, img)
         return fr
+
+    def apply_reveal(self, fr, seg, k, img=None):
+        """Shape-mask reveal: the clip's composed picture shows through bursting shapes on a plain base."""
+        from . import reveal as revealmod
+        rv = seg["reveal"]
+        key = id(seg)
+        if key not in self._reveals:
+            self._reveals[key] = revealmod.Reveal(rv, self.W, self.H, self.pos(rv["pos"]), self.F)
+        R = self._reveals[key]
+        t = k / self.F
+        m = R.mask(t)
+        if m is None:
+            return fr
+        z = R.zoom_at(t)
+        pic = self._zoomed(fr, z) if abs(z - 1) > 1e-3 else fr
+        if rv["base"] == "stage" and t >= rv["lead"]:
+            base = self.background(seg["background"], img, (seg["start"] + k) / self.F).convert("RGBA")
+        else:
+            base = Image.new("RGBA", fr.size, color(rv["gap"] if rv["base"] == "stage" else rv["base"], self.pal))
+        return Image.composite(pic, base, m)
 
     def first_frame(self):
         """Frame 0 composited (for loop endings), rendered once by a helper renderer."""
@@ -1630,17 +2142,23 @@ class Renderer:
                 continue
             s0, img0, k0 = layers[0]
             fr = self.compose_full(s0, img0, k0, g)
+            carried, boxes = (), []
             if len(layers) > 1:
                 s1, img1, k1 = layers[-1]
                 fr1 = self.compose_full(s1, img1, k1, g)
                 a = (k1 + 1) / (s1["trans"]["n"] + 1)
                 tr = s1["trans"]
+                if tr.get("carry") and s0["section"] != s1["section"]:
+                    # texts + overlays travel with their own picture through the transition
+                    carried = (s0["section"], s1["section"])
+                    boxes += self.draw_texts(fr, g, only={s0["section"]}) + self.draw_texts(fr1, g, only={s1["section"]})
                 if tr["type"] == "zoom" and tr.get("pos", "auto") == "auto":
                     tr = dict(tr, _focus=self.last_tap(s0, g))
                 elif tr["type"] == "zoom" and isinstance(tr.get("pos"), (list, tuple)):
                     tr = dict(tr, _focus=self.pos(tr["pos"]))
                 fr = self.blend(fr, fr1, min(1.0, a), tr, g)
-            boxes = self.draw_texts(fr, g)
+            fr = self.behind_subject(fr, g)
+            boxes += self.draw_texts(fr, g, skip=carried)
             for what, b in boxes:
                 k = (what, round(b[0]), round(b[1]))
                 if k not in checked and self.spec["output"]["aspect"] == "9:16":
