@@ -17,6 +17,7 @@ import {hubBeams} from './hub-beams';
 import {gather} from './gather';
 import {nodeMap} from './node-map';
 import {flowGraph} from './flow-graph';
+import {teamChart} from './team-chart';
 import {imageRain} from './image-rain';
 import {stickerTiles} from './sticker-tiles';
 import {lineChart} from './line-chart';
@@ -94,6 +95,7 @@ export const LOOKS: LookDef[] = [
 	gather,
 	nodeMap,
 	flowGraph,
+	teamChart,
 	lineDraw,
 	barChart,
 	lineChart,

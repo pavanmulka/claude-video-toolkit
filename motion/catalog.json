@@ -12141,6 +12141,469 @@
   }
  },
  {
+  "id": "team-chart",
+  "category": "diagram",
+  "kind": "scene",
+  "description": "A playful org chart of a team (people, tools or agents with job titles): the title is on screen from frame 0, the person at the top pops in with a ring drawing round their photo, then each department builds in turn: a header chip on the trunk, elbow wires drawing out and members popping in one after another. `style: tree` (default): small round logos with the role above a bold name (and an optional short `desc`), rows hanging off a centre trunk that runs on under each row's middle member; `style: cards`: a box per member with a logo tile and the role on an accent pill. Once everything is built, glowing pulses keep flowing from the person out to every member (passing behind middle members), each lighting up as a pulse arrives; an optional footer line pops in last; `spotlight` pushes the camera in on the person (rest dims, rings pulse, an emoji sticker pops) and back out. Laid out 1080 wide and scaled to fit any frame (4:5 for LinkedIn fits best).",
+  "default_duration": 12,
+  "props": {
+   "width": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1080,
+    "description": "Output width in px (1080x1920 primary; 1920x1080 and 1080x1080 supported)"
+   },
+   "height": {
+    "type": "integer",
+    "min": 16,
+    "max": 7680,
+    "default": 1920,
+    "description": "Output height in px"
+   },
+   "fps": {
+    "type": "number",
+    "min": 1,
+    "max": 120,
+    "default": 30,
+    "description": "Frames per second"
+   },
+   "duration": {
+    "type": "number",
+    "min": 0.1,
+    "max": 600,
+    "default": 12,
+    "description": "Length in seconds"
+   },
+   "transparent": {
+    "type": "boolean",
+    "default": false,
+    "description": "true = nothing painted behind the graphic (alpha overlay layer); false = paint a themed background. Backgrounds ignore it"
+   },
+   "stage": {
+    "type": "enum",
+    "values": [
+     "themed",
+     "plain"
+    ],
+    "default": "themed",
+    "description": "With transparent=false: themed = the glowing stage, plain = just the flat theme bg colour (an opaque H.264 layer that blends into a flat stage, e.g. a side panel)"
+   },
+   "theme": {
+    "type": "object",
+    "props": {
+     "bg": {
+      "type": "color",
+      "default": "#0E0416",
+      "description": "Background colour (painted only when transparent is false)"
+     },
+     "fg": {
+      "type": "color",
+      "default": "#FFFFFF",
+      "description": "Main text colour"
+     },
+     "accent": {
+      "type": "color",
+      "default": "#61F0EA",
+      "description": "Accent colour (keywords, highlights, buttons)"
+     },
+     "accent2": {
+      "type": "color",
+      "default": "#B28CFF",
+      "description": "Secondary accent (gradients, secondary marks)"
+     },
+     "muted": {
+      "type": "color",
+      "default": "#9A8FB0",
+      "description": "Muted colour (labels, secondary text)"
+     },
+     "glow": {
+      "type": "color",
+      "default": "#7C5CFF",
+      "description": "Glow / bloom colour"
+     }
+    },
+    "default": {
+     "bg": "#0E0416",
+     "fg": "#FFFFFF",
+     "accent": "#61F0EA",
+     "accent2": "#B28CFF",
+     "muted": "#9A8FB0",
+     "glow": "#7C5CFF"
+    },
+    "description": "Colours (hex)"
+   },
+   "font": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "TikTok Sans",
+      "description": "Font family: a family from brand/fonts (e.g. \"TikTok Sans\", \"Inter Display\", \"Montserrat\") or an installed system font"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 800,
+      "description": "Font weight (100-1000)"
+     },
+     "stretch": {
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "default": 100,
+      "description": "Font width in % for variable fonts with a width axis (TikTok Sans: 75 condensed ... 150 wide)"
+     }
+    },
+    "default": {
+     "family": "TikTok Sans",
+     "weight": 800,
+     "stretch": 100
+    },
+    "description": "Primary font"
+   },
+   "font2": {
+    "type": "object",
+    "props": {
+     "family": {
+      "type": "string",
+      "default": "Instrument Serif",
+      "description": "Secondary family for italic/editorial accents; falls back to system serifs (Didot, Georgia) if not installed"
+     },
+     "weight": {
+      "type": "number",
+      "min": 100,
+      "max": 1000,
+      "default": 400,
+      "description": "Font weight (100-1000)"
+     },
+     "style": {
+      "type": "enum",
+      "values": [
+       "italic",
+       "normal"
+      ],
+      "default": "italic",
+      "description": "Font style"
+     }
+    },
+    "default": {
+     "family": "Instrument Serif",
+     "weight": 400,
+     "style": "italic"
+    },
+    "description": "Secondary font (italic / editorial accents)"
+   },
+   "delay": {
+    "type": "number",
+    "min": 0,
+    "max": 600,
+    "default": 0,
+    "description": "Seconds before the animation starts (the layer is empty until then)"
+   },
+   "outro": {
+    "type": "number",
+    "min": 0,
+    "max": 10,
+    "default": 0,
+    "description": "Exit animation at the end, in seconds (0 = hold the last pose until the end)"
+   },
+   "title": {
+    "type": "string",
+    "default": "Meet **Your** AI Team",
+    "description": "Title at the top; **word** = accent. On screen from frame 0 (the cover)"
+   },
+   "subtitle": {
+    "type": "string",
+    "default": "A full team. Zero meetings.",
+    "description": "Line under the title"
+   },
+   "root": {
+    "type": "object",
+    "props": {
+     "name": {
+      "type": "string",
+      "default": "You",
+      "description": "Name under the photo"
+     },
+     "role": {
+      "type": "string",
+      "default": "Founder & CEO",
+      "description": "Role pill under the photo"
+     },
+     "photo": {
+      "type": "string",
+      "default": "",
+      "description": "Round photo (absolute file path, path inside motion/public, URL, or empty)"
+     },
+     "at": {
+      "type": "number",
+      "min": 0,
+      "max": 600,
+      "default": 0.3,
+      "description": "Seconds at which the photo pops in"
+     }
+    },
+    "default": {
+     "name": "You",
+     "role": "Founder & CEO",
+     "photo": "",
+     "at": 0.3
+    },
+    "description": "The person at the top: {name, role, photo, at}"
+   },
+   "groups": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "props": {
+      "label": {
+       "type": "string",
+       "default": "Team",
+       "description": "Department header (shown in caps on a chip)"
+      },
+      "note": {
+       "type": "string",
+       "default": "",
+       "description": "Optional small italic note after the label (e.g. \"built by me\")"
+      },
+      "columns": {
+       "type": "number",
+       "min": 1,
+       "max": 5,
+       "default": 3,
+       "description": "Members per row"
+      },
+      "rows": {
+       "type": "array",
+       "items": {
+        "type": "integer",
+        "min": 1,
+        "max": 5
+       },
+       "default": [],
+       "description": "Optional row sizes, e.g. [3, 3, 4] (overrides columns)"
+      },
+      "at": {
+       "type": "number",
+       "min": -1,
+       "max": 600,
+       "default": -1,
+       "description": "Seconds at which the group builds in; -1 = automatic, one after another"
+      },
+      "members": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "props": {
+         "name": {
+          "type": "string",
+          "default": "Member",
+          "description": "Name (bold)"
+         },
+         "role": {
+          "type": "string",
+          "default": "Role",
+          "description": "Job title"
+         },
+         "desc": {
+          "type": "string",
+          "default": "",
+          "description": "Optional short line under the name (e.g. what they do)"
+         },
+         "logo": {
+          "type": "string",
+          "default": "",
+          "description": "Logo / avatar image (absolute file path, path inside motion/public, URL, or empty)"
+         },
+         "fill": {
+          "type": "boolean",
+          "default": false
+         }
+        }
+       },
+       "default": [],
+       "description": "Members: [{name, role, desc, logo, fill}]"
+      }
+     }
+    },
+    "default": [
+     {
+      "label": "Leadership",
+      "note": "",
+      "columns": 3,
+      "rows": [],
+      "at": -1,
+      "members": [
+       {
+        "name": "Assistant",
+        "role": "Chief of Staff",
+        "desc": "Plans the day",
+        "logo": "",
+        "fill": false
+       },
+       {
+        "name": "Coder",
+        "role": "Head of Engineering",
+        "desc": "Ships the code",
+        "logo": "",
+        "fill": false
+       },
+       {
+        "name": "Operator",
+        "role": "Head of Operations",
+        "desc": "Runs the agents",
+        "logo": "",
+        "fill": false
+       }
+      ]
+     },
+     {
+      "label": "In-house team",
+      "note": "built by me",
+      "columns": 2,
+      "rows": [],
+      "at": -1,
+      "members": [
+       {
+        "name": "Workflow A",
+        "role": "Head of Growth",
+        "desc": "",
+        "logo": "",
+        "fill": false
+       },
+       {
+        "name": "Workflow B",
+        "role": "Head of Sales",
+        "desc": "",
+        "logo": "",
+        "fill": false
+       }
+      ]
+     }
+    ],
+    "description": "Departments, top to bottom: [{label, note, columns, rows, at, members: [{name, role, desc, logo, fill}]}]"
+   },
+   "footer": {
+    "type": "string",
+    "default": "",
+    "description": "Optional line at the bottom that pops in once everything is built (e.g. \"Headcount 17 · Humans 1\"); **word** = accent"
+   },
+   "footerAt": {
+    "type": "number",
+    "min": -1,
+    "max": 600,
+    "default": -1,
+    "description": "Seconds at which the footer pops in (e.g. on a music downbeat); -1 = just after everything is built"
+   },
+   "spotlight": {
+    "type": "object",
+    "props": {
+     "at": {
+      "type": "number",
+      "min": -1,
+      "max": 600,
+      "default": -1,
+      "description": "Seconds at which the camera starts pushing in on the person at the top (-1 = never)"
+     },
+     "dur": {
+      "type": "number",
+      "min": 0.2,
+      "max": 60,
+      "default": 2,
+      "description": "Seconds the close-up holds before the camera pulls back out"
+     },
+     "zoom": {
+      "type": "number",
+      "min": 1,
+      "max": 4,
+      "default": 1.8,
+      "description": "Close-up zoom"
+     },
+     "badge": {
+      "type": "string",
+      "default": "",
+      "description": "Emoji / short text on a sticker that pops beside the photo during the close-up (e.g. \"☕\")"
+     },
+     "badgeAt": {
+      "type": "number",
+      "min": -1,
+      "max": 600,
+      "default": -1,
+      "description": "Seconds at which the sticker pops (e.g. on the word it is about); -1 = as the camera arrives"
+     }
+    },
+    "default": {
+     "at": -1,
+     "dur": 2,
+     "zoom": 1.8,
+     "badge": "",
+     "badgeAt": -1
+    },
+    "description": "Close-up on the person: {at, dur, zoom, badge}: the camera pushes in on the photo, the rest dims, rings pulse round the photo, a sticker pops beside it, then the camera pulls back to the whole chart (e.g. on a voice-over line about them)"
+   },
+   "style": {
+    "type": "enum",
+    "values": [
+     "tree",
+     "cards"
+    ],
+    "default": "tree",
+    "description": "tree: small round logos, the role above a bold name, rows hanging off elbow lines from a centre trunk (no boxes); cards: a box per member with a logo tile and the role on an accent pill"
+   },
+   "logoSize": {
+    "type": "number",
+    "min": 40,
+    "max": 200,
+    "default": 84,
+    "description": "tree: logo circle diameter (design px)"
+   },
+   "stagger": {
+    "type": "number",
+    "min": 0,
+    "max": 2,
+    "default": 0.07,
+    "description": "Seconds between members popping in"
+   },
+   "groupGap": {
+    "type": "number",
+    "min": 0.1,
+    "max": 10,
+    "default": 1.25,
+    "description": "Seconds between groups when their `at` is automatic"
+   },
+   "pulseEvery": {
+    "type": "number",
+    "min": 0,
+    "max": 30,
+    "default": 1.5,
+    "description": "Seconds between pulse waves running from the person to every member (0 = no pulses)"
+   },
+   "pulseSpeed": {
+    "type": "number",
+    "min": 50,
+    "max": 5000,
+    "default": 900,
+    "description": "Pulse speed in design px per second"
+   },
+   "tone": {
+    "type": "enum",
+    "values": [
+     "dark",
+     "light"
+    ],
+    "default": "dark",
+    "description": "Surface: dark (dark stage) or light (white cards / dark text on a light stage)"
+   },
+   "grid": {
+    "type": "boolean",
+    "default": true,
+    "description": "Faint dot grid on the stage (when transparent is false)"
+   }
+  }
+ },
+ {
   "id": "line-draw",
   "category": "diagram",
   "kind": "overlay",
